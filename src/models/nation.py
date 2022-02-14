@@ -1,0 +1,14 @@
+from pydantic import BaseModel, Field
+
+from src.models.snek_server_status import NationType, TurnStatus
+
+
+class Nation(BaseModel):
+    id: str
+    name: str
+    epithet: str
+    pretender_id: str
+    controller: NationType
+    ai_level: str
+    turn_played: TurnStatus
+    filename: str

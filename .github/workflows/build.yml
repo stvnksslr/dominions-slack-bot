@@ -1,0 +1,30 @@
+name: build
+
+on:
+  push:
+    branches:
+      - master
+    tags-ignore:
+      - "*.*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 2
+      matrix:
+        python-version: [3.8]
+    steps:
+      - uses: actions/checkout@v1
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          pip install --no-cache-dir --pre poetry
+          python -m poetry config virtualenvs.in-project true
+          python -m poetry install
+      - name: Linting
+        run: |
+          poetry run flake8
