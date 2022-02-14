@@ -1,16 +1,21 @@
 from aiohttp.client import ClientSession
 from pytest import mark
 from json import loads
-from src.controllers.snek_status import fetch_snek_status, parse_snek_player_details
+
+from src.controllers.server_status import query_game_server
+from src.controllers.snek_status import (
+    fetch_snek_game_details,
+    parse_snek_player_details,
+)
 from pathlib import Path
 
 from src.models.snek_server_details import SnekServerDetails
 
 player_status_response = (
-    Path.cwd() / "src" / "tests" / "responses" / "player_status.json"
+        Path.cwd() / "src" / "tests" / "responses" / "player_status.json"
 )
 server_status_response = (
-    Path.cwd() / "src" / "tests" / "responses" / "server_status_running.json"
+        Path.cwd() / "src" / "tests" / "responses" / "server_status_running.json"
 )
 
 
@@ -23,8 +28,16 @@ async def test__fetch_snek_status():
     :return:
     """
     async with ClientSession() as session:
-        response = await fetch_snek_status(port="3533", session=session)
+        response = await fetch_snek_game_details(port="3533", session=session)
     assert response is True
+
+
+@mark.skip(reason="Used for testing direct server connections")
+def test__query_game_server():
+    response = query_game_server(address="snek.earth", port="33533")
+    assert response.name == "middleagedbois"
+    assert response.hours_remaining == "25.54"
+    assert response.turn == "70"
 
 
 def test__parse_snek_player_details():

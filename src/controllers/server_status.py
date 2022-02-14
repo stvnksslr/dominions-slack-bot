@@ -23,12 +23,14 @@ def query_game_server(address: str, port: str) -> ServerDetails:
     sck = socket()
     sck.settimeout(5.0)
 
-    with sck.connect((address, port)) as socket_handler:
-        packed_game_request = PACKED_GAME_REQUEST
-        socket_handler.send(packed_game_request)
-        server_response = sck.recv(512)
-        # send close command
-        socket_handler.send(pack(PACKET_HEADER, b"f", b"H", 1, 11))
+    sck.connect((address, int(port)))
+
+    packed_game_request = PACKED_GAME_REQUEST
+    sck.send(packed_game_request)
+    server_response = sck.recv(512)
+    # send close command
+    sck.send(pack(PACKET_HEADER, b"f", b"H", 1, 11))
+    sck.close()
 
     data_array, hours_remaining = parse_raw_server_data(server_response)
 
