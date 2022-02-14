@@ -1,10 +1,23 @@
 from aiohttp.client import ClientSession
 
-from src.controllers.formatting import create_nations_block, create_game_details_block
+from src.controllers.formatting import (
+    create_nations_block,
+    create_game_details_block,
+    format_server_details,
+)
 from src.controllers.server_status import query_game_server
 from src.models.nation import Nation
 from src.models.snek_server_details import SnekServerDetails
 from typing import Dict, List
+
+
+async def server_details_wrapper(port):
+    game_id = port[1:]
+
+    async with ClientSession() as session:
+        response = await fetch_snek_game_details(port=game_id, session=session)
+    formatted_response = format_server_details(response)
+    return formatted_response
 
 
 async def server_response_wrapper(port):

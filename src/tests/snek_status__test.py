@@ -12,10 +12,10 @@ from pathlib import Path
 from src.models.snek_server_details import SnekServerDetails
 
 player_status_response = (
-        Path.cwd() / "src" / "tests" / "responses" / "player_status.json"
+    Path.cwd() / "src" / "tests" / "responses" / "player_status.json"
 )
 server_status_response = (
-        Path.cwd() / "src" / "tests" / "responses" / "server_status_running.json"
+    Path.cwd() / "src" / "tests" / "responses" / "server_status_running.json"
 )
 
 
