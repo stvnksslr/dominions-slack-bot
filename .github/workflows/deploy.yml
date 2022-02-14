@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@master
       - name: Publish to Registry
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v1.1.0
         with:
           repository: stvnksslr/dominions-slack-bot
           tag_with_ref: true
