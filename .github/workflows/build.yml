@@ -1,30 +1,70 @@
+# file: .github/workflows/build.yaml
 name: build
 
 on:
+  pull_request:
+    branches:
+      - main
   push:
     branches:
-      - master
+      - main
     tags-ignore:
       - "*.*"
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
-    strategy:
-      max-parallel: 2
-      matrix:
-        python-version: [ 3.9 ]
     steps:
-      - uses: actions/checkout@v1
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v1
+      #----------------------------------------------
+      #       check-out repo and set-up python
+      #----------------------------------------------
+      - name: Check out repository
+        uses: actions/checkout@v2
+      - name: Set up python
+        uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: 3.9
+      #----------------------------------------------
+      #  -----  install & configure poetry  -----
+      #----------------------------------------------
+      - name: Install Poetry
+        uses: snok/install-poetry@v1.1.2
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+      #----------------------------------------------
+      #       load cached venv if cache exists
+      #----------------------------------------------
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v2
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+      #----------------------------------------------
+      # install dependencies if cache does not exist
+      #----------------------------------------------
       - name: Install dependencies
-        run: |
-          pip install --no-cache-dir --pre poetry
-          python -m poetry config virtualenvs.in-project true
-          python -m poetry install
-      - name: Linting
-        run: |
-          poetry run flake8
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install
+      #----------------------------------------------
+      #              run linter suite
+      #----------------------------------------------
+      - name: Run linters
+        run: poetry run flake8
+      #----------------------------------------------
+      #              run test suite
+      #----------------------------------------------
+      - name: Run tests
+        run: poetry run pytest
+      #----------------------------------------------
+      #      Send code coverage to code climate
+      #----------------------------------------------
+      - name: Submit coverage to code climate
+        uses: paambaati/codeclimate-action@v2.3.0
+        continue-on-error: true
+        env:
+          CI: "true"
+          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+        with:
+          coverageCommand: poetry run pytest --cov-branch --cov-report xml --cov=src src
