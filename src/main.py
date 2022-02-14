@@ -1,11 +1,15 @@
 from os import getenv
+from random import choice
 
 from dotenv import load_dotenv
 from asyncio import run
 from uvloop import install as uvloop_setup
+from re import compile
 
 from slack_bolt.async_app import AsyncApp
 from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
+
+from src.controllers.grog import grog_response_list
 from src.controllers.snek_status import server_response_wrapper, server_details_wrapper
 
 load_dotenv()
@@ -16,8 +20,14 @@ SLACK_APP_TOKEN = getenv("SLACK_APP_TOKEN")
 app = AsyncApp(token=SLACK_BOT_TOKEN)
 
 
+@app.message(compile("(grog)"))
+async def say_hello(say):
+    random_grog = choice(grog_response_list)
+    await say(random_grog)
+
+
 @app.command("/details")
-async def fetch_server_details(ack, respond, command):
+async def fetch_server_details(ack, say, command):
     """
     Request all server settings from snek.earth
 
@@ -29,11 +39,11 @@ async def fetch_server_details(ack, respond, command):
     command_context = command["text"]
     formatted_game_details = await server_details_wrapper(port=command_context)
     await ack()
-    await respond(blocks=formatted_game_details, text="status")
+    await say(blocks=formatted_game_details, text="status")
 
 
 @app.command("/check")
-async def fetch_server_status(ack, respond, command):
+async def fetch_server_status(ack, say, command):
     """
     Requests all player status's and the current servers turn timer
 
@@ -45,7 +55,7 @@ async def fetch_server_status(ack, respond, command):
     command_context = command["text"]
     formatted_response = await server_response_wrapper(port=command_context)
     await ack()
-    await respond(blocks=formatted_response, text="status")
+    await say(blocks=formatted_response, text="status")
 
 
 async def main():
