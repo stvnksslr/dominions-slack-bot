@@ -12,5 +12,4 @@ COPY pyproject.toml poetry.lock /src/
 RUN pip install "poetry==$POETRY_VERSION" && poetry install --no-dev
 
 # last to prevent layer conflicts when changing code
-COPY ./migrations /src/migrations
 COPY ./src /src/src

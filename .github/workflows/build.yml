@@ -1,5 +1,5 @@
 # file: .github/workflows/build.yaml
-name: build
+name: Build
 
 on:
   pull_request:
