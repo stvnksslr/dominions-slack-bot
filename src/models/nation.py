@@ -4,6 +4,9 @@ from src.models.snek_server_status import NationType, TurnStatus
 
 
 class Nation(BaseModel):
+    """
+    Nation Object Representing either a human player, ai or defeated nation
+    """
     id: str
     name: str
     epithet: str
