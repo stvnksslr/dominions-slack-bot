@@ -7,7 +7,7 @@ class Nation(BaseModel):
     """
     Nation Object Representing either a human player, ai or defeated nation
     """
-    id: str
+    game_id: str = Field(alias="id")
     name: str
     epithet: str
     pretender_id: str

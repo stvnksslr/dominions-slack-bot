@@ -2,11 +2,11 @@ from typing import Optional, List
 
 from pydantic import BaseModel, Field
 
-from src.models.snek_server_status import Era, ServerState
+from src.models.snek_server_status import Era
 
 
 class SnekServerDetails(BaseModel):
-    id: int
+    game_id: int = Field(alias="id")
     name: str
     era: Era
     port: Optional[None]
@@ -42,7 +42,7 @@ class SnekServerDetails(BaseModel):
     summer_vp: bool = Field(alias="summervp")
     capital_vp: bool = Field(alias="capitalvp")
     cataclysm: Optional[int]
-    globals: int
+    max_globals: int = Field(alias="globals")
     story_events: int = Field(alias="storyevents")
     no_rand_research: bool = Field(alias="norandres")
     recruitment: int

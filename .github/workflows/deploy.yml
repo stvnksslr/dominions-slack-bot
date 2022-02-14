@@ -1,10 +1,9 @@
+name: Deploy
+
 on:
   push:
     tags:
       - "*.*"
-
-name: Deploy
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -13,7 +12,7 @@ jobs:
       - name: Publish to Registry
         uses: docker/build-push-action@v2
         with:
-          repository: stvnksslr/dominions-slack-bot
+          repository: stvnksslr/dataslate
           tag_with_ref: true
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}

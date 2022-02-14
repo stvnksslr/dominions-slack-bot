@@ -20,10 +20,10 @@ def create_nations_block(nations) -> List:
         if player_type == "Bot":
             turn_status_emoji = ":robot_face:"
         elif (
-            player_type == "eliminated_player"
-            or player_type == "Defeated_Duplicate"
-            or player_type == "Defeated_this_turn"
-            or player_type == "Defeated"
+                player_type == "eliminated_player"
+                or player_type == "Defeated_Duplicate"
+                or player_type == "Defeated_this_turn"
+                or player_type == "Defeated"
         ):
             turn_status_emoji = ":skull:"
         elif turn_status == "NotSubmitted":
@@ -105,7 +105,7 @@ def format_server_details(details: SnekServerDetails) -> List:
         {
             "type": "section",
             "fields": [
-                {"type": "plain_text", "text": f"Id: {details.id}", "emoji": True},
+                {"type": "plain_text", "text": f"Id: {details.game_id}", "emoji": True},
                 {
                     "type": "plain_text",
                     "text": f"Era: {details.era.name}",
@@ -283,7 +283,7 @@ def format_server_details(details: SnekServerDetails) -> List:
                 },
                 {
                     "type": "plain_text",
-                    "text": f"Globals: {details.globals}",
+                    "text": f"Globals: {details.max_globals}",
                     "emoji": True,
                 },
                 {
