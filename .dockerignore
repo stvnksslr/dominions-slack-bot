@@ -2,3 +2,7 @@
 .venv
 .github
 .git
+docker-compose.yml
+dockerfile
+README.md
+setup.cfg

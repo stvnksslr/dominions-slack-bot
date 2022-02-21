@@ -4,9 +4,10 @@ from random import choice
 from dotenv import load_dotenv
 from asyncio import run
 
-from loguru import logger
 from uvloop import install as uvloop_setup
 from re import compile
+
+from logging import basicConfig, INFO, DEBUG
 
 from slack_bolt.async_app import AsyncApp
 from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
@@ -34,7 +35,7 @@ async def fetch_server_details(ack, say, command):
     Request all server settings from snek.earth
 
     :param ack:
-    :param respond:
+    :param say:
     :param command:
     :return:
     """
@@ -50,7 +51,7 @@ async def fetch_server_status(ack, say, command):
     Requests all player status's and the current servers turn timer
 
     :param ack:
-    :param respond:
+    :param say:
     :param command:
     :return:
     """
@@ -72,6 +73,5 @@ async def main():
 
 # Start your app
 if __name__ == "__main__":
-    logger.info("starting bot")
     uvloop_setup()
     run(main())
