@@ -1,11 +1,7 @@
-from os import getenv
 from random import choice
-
 from asyncio import run
-
 from uvloop import install as uvloop_setup
 from re import compile
-
 from slack_bolt.async_app import AsyncApp
 from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
 
