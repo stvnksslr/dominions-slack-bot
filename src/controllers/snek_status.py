@@ -35,6 +35,7 @@ async def server_response_wrapper(port):
         game_name=game_server_details.name,
         turn=game_server_details.turn,
         remaining_time=game_server_details.hours_remaining,
+        port=raw_port,
     )
     formatted_response = game_details_block + nation_block
     return formatted_response

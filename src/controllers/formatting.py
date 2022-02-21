@@ -20,10 +20,10 @@ def create_nations_block(nations) -> List:
         if player_type == "Bot":
             turn_status_emoji = ":robot_face:"
         elif (
-                player_type == "eliminated_player"
-                or player_type == "Defeated_Duplicate"
-                or player_type == "Defeated_this_turn"
-                or player_type == "Defeated"
+            player_type == "eliminated_player"
+            or player_type == "Defeated_Duplicate"
+            or player_type == "Defeated_this_turn"
+            or player_type == "Defeated"
         ):
             turn_status_emoji = ":skull:"
         elif turn_status == "NotSubmitted":
@@ -42,13 +42,14 @@ def create_nations_block(nations) -> List:
     return player_blocks
 
 
-def create_game_details_block(game_name, turn, remaining_time) -> List:
+def create_game_details_block(game_name, turn, remaining_time, port) -> List:
     """
     Attempt to format general server details
 
     :param game_name:
     :param turn:
     :param remaining_time:
+    :param port:
     :return:
     """
     formatted_msg = [
@@ -67,6 +68,10 @@ def create_game_details_block(game_name, turn, remaining_time) -> List:
         {
             "type": "section",
             "text": {"type": "mrkdwn", "text": f"{game_name} Turn: {turn}"},
+        },
+        {
+            "type": "section",
+            "text": {"type": "mrkdwn", "text": f"port: {port}"},
         },
         {
             "type": "section",

@@ -22,9 +22,26 @@ app = AsyncApp(token=SLACK_BOT_TOKEN)
 
 
 @app.message(compile("(grog)"))
-async def say_hello(say):
+async def grog_responder(say):
+    """
+    when the word grog is mentioned in a channel the bot is present it
+    will return one of several random responses
+
+    :param say:
+    :return:
+    """
     random_grog = choice(grog_response_list)
     await say(random_grog)
+
+
+@app.event("message")
+async def handle_message_events():
+    """
+    generic message handler to make sure messages get handled in some way
+
+    :return:
+    """
+    pass
 
 
 @app.command("/details")

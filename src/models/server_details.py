@@ -7,6 +7,7 @@ class ServerDetails(BaseModel):
     or are broken and must be pulled from the game
     server itself
     """
+
     name: str
     turn: str
     hours_remaining: str
