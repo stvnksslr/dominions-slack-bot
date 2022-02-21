@@ -8,7 +8,7 @@ ENV PIP_DISABLE_PIP_VERSION_CHECK=on \
 
 WORKDIR /src
 
-COPY ./src /src/src
+COPY ./src /src/src/
 COPY pyproject.toml poetry.lock /src/
 
 RUN pip install "poetry==$POETRY_VERSION" && poetry install --no-dev
@@ -16,4 +16,9 @@ RUN pip install "poetry==$POETRY_VERSION" && poetry install --no-dev
 
 FROM python:3.9-slim-buster AS app
 
-COPY --from=build /src/ /src/
+COPY --from=build /src/ ./
+
+ENV VIRTUAL_ENV=/.venv
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+CMD ["python", "-m", "src.main"]

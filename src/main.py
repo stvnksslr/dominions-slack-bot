@@ -3,6 +3,8 @@ from random import choice
 
 from dotenv import load_dotenv
 from asyncio import run
+
+from loguru import logger
 from uvloop import install as uvloop_setup
 from re import compile
 
@@ -70,5 +72,6 @@ async def main():
 
 # Start your app
 if __name__ == "__main__":
+    logger.info("starting bot")
     uvloop_setup()
     run(main())
