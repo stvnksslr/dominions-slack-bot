@@ -1,6 +1,6 @@
 from typing import List
 
-from src.models.snek_server_details import SnekServerDetails
+from src.models.dataclasses.snek_server_details import SnekServerDetails
 
 
 def create_nations_block(nations) -> List:
@@ -320,3 +320,20 @@ def format_server_details(details: SnekServerDetails) -> List:
         },
     ]
     return formatted_msg
+
+
+def create_game_list(games) -> List:
+    """
+    Creates a formatted list of games to be returned as a text block
+    :param games:
+    :return:
+    """
+    game_blocks = []
+
+    for game in games:
+        nation_section = {
+            "type": "section",
+            "text": {"type": "mrkdwn", "text": f" {game.name}:{game.port}"},
+        }
+        game_blocks.append(nation_section)
+    return game_blocks

@@ -2,7 +2,7 @@ from socket import socket
 from struct import pack, unpack
 from zlib import decompress
 
-from src.models.server_details import ServerDetails
+from src.models.dataclasses.server_details import ServerDetails
 from src.utils.socket_request_constants import (
     PACKET_HEADER,
     PACKET_GENERAL_INFO,

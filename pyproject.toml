@@ -11,6 +11,8 @@ aiohttp = "^3.8.1"
 uvloop = "^0.16.0"
 pydantic = "^1.9.0"
 python-dotenv = "^0.19.2"
+tortoise-orm = {extras = ["asyncpg"], version = "^0.18.1"}
+aerich = "^0.6.2"
 
 
 [tool.poetry.dev-dependencies]
@@ -29,6 +31,11 @@ flake8-eradicate = "^0.2.3"
 pytest-asyncio = "^0.14.0"
 flake8-comprehensions = "^3.1.4"
 
+
+[tool.aerich]
+tortoise_orm = "src.utils.db_manager.MIGRATION_CONFIG"
+location = "./migrations"
+src_folder = "./."
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"

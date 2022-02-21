@@ -2,7 +2,7 @@ from typing import Optional, List
 
 from pydantic import BaseModel, Field
 
-from src.models.snek_server_status import Era
+from src.models.dataclasses.snek_server_status import Era
 
 
 class SnekServerDetails(BaseModel):

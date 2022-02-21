@@ -6,8 +6,8 @@ from src.controllers.formatting import (
     format_server_details,
 )
 from src.controllers.server_status import query_game_server
-from src.models.nation import Nation
-from src.models.snek_server_details import SnekServerDetails
+from src.models.dataclasses.nation import Nation
+from src.models.dataclasses.snek_server_details import SnekServerDetails
 from typing import Dict, List
 
 
