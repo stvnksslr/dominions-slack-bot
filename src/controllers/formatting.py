@@ -1,6 +1,6 @@
 from typing import List
 
-from src.models.snek_server_details import SnekServerDetails
+from src.models.dataclasses.snek_server_details import SnekServerDetails
 
 
 def create_nations_block(nations) -> List:

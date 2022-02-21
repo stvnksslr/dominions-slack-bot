@@ -1,0 +1,8 @@
+-- upgrade --
+ALTER TABLE "game" ADD "active" BOOL NOT NULL  DEFAULT True;
+ALTER TABLE "game" ADD "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE "game" ADD "updated_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP;
+-- downgrade --
+ALTER TABLE "game" DROP COLUMN "active";
+ALTER TABLE "game" DROP COLUMN "created_at";
+ALTER TABLE "game" DROP COLUMN "updated_at";

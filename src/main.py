@@ -1,7 +1,6 @@
 from os import getenv
 from random import choice
 
-from dotenv import load_dotenv
 from asyncio import run
 
 from uvloop import install as uvloop_setup
@@ -10,13 +9,10 @@ from re import compile
 from slack_bolt.async_app import AsyncApp
 from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
 
+from src.controllers.games import find_active_games, create_game
 from src.controllers.grog import grog_response_list
 from src.controllers.snek_status import server_response_wrapper, server_details_wrapper
-
-load_dotenv()
-
-SLACK_BOT_TOKEN = getenv("SLACK_BOT_TOKEN")
-SLACK_APP_TOKEN = getenv("SLACK_APP_TOKEN")
+from src.utils.constants import SLACK_BOT_TOKEN, SLACK_APP_TOKEN
 
 app = AsyncApp(token=SLACK_BOT_TOKEN)
 
@@ -74,6 +70,43 @@ async def fetch_server_status(ack, say, command):
     formatted_response = await server_response_wrapper(port=command_context)
     await ack()
     await say(blocks=formatted_response, text="status")
+
+
+@app.command("/list")
+async def list_current_games(ack, say):
+    """
+    Returns a list of the currently active games
+
+    :param ack:
+    :param say:
+    :return:
+    """
+    active_games = await find_active_games()
+    await ack()
+    for game in active_games:
+        await say(game.name, game.port)
+
+
+@app.command("/add")
+async def add_new_game(ack, say, command):
+    """
+    adds new game to be tracked by the database
+
+    example input mynewgame:12345
+
+    :param ack:
+    :param say:
+    :param command:
+    :return:
+    """
+    command_context = command["text"]
+    await ack()
+    try:
+        parsed_commands = command_context.split(":")
+        await create_game(name=parsed_commands[0], port=parsed_commands[1])
+        say("game created successfully")
+    except Exception:
+        say("there was an error processing your request")
 
 
 async def main():

@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 
-from src.models.snek_server_status import NationType, TurnStatus
+from src.models.dataclasses.snek_server_status import NationType, TurnStatus
 
 
 class Nation(BaseModel):

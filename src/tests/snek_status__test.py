@@ -9,7 +9,7 @@ from src.controllers.snek_status import (
 )
 from pathlib import Path
 
-from src.models.snek_server_details import SnekServerDetails
+from src.models.dataclasses.snek_server_details import SnekServerDetails
 
 player_status_response = (
     Path.cwd() / "src" / "tests" / "responses" / "player_status.json"
