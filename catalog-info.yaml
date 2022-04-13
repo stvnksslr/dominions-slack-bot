@@ -1,0 +1,10 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: dominions-slack-bot
+  annotations:
+    github.com/project-slug: stvnksslr/dominions-slack-bot
+spec:
+  type: other
+  lifecycle: unknown
+  owner: stvnksslr
