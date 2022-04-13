@@ -2,9 +2,10 @@ apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
   name: dominions-slack-bot
+  description: A bot to track turns and games for dominions 5
   annotations:
     github.com/project-slug: stvnksslr/dominions-slack-bot
 spec:
-  type: other
-  lifecycle: unknown
+  type: bot
   owner: stvnksslr
+  lifecycle: production
