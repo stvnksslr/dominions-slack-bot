@@ -6,6 +6,6 @@ metadata:
   annotations:
     github.com/project-slug: stvnksslr/dominions-slack-bot
 spec:
-  type: bot
+  type: website
   owner: stvnksslr
   lifecycle: production
