@@ -5,6 +5,7 @@ metadata:
   description: A bot to track turns and games for dominions 5
   annotations:
     github.com/project-slug: stvnksslr/dominions-slack-bot
+    backstage.io/kubernetes-id: 'dominions'
 spec:
   type: website
   owner: stvnksslr
