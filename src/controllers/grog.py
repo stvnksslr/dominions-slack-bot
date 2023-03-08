@@ -6,4 +6,8 @@ grog_response_list = [
     ":_g: :_r: :_o: :_g:",
     ":sumpyee: :sumpyee2:",
     ":ref:",
+    "grogtech m'lorde",
+    ":madcat:",
+    ":dread:",
+    "𝔾𝕣𝕠𝕘𝕥𝕖𝕔𝕙 𝕚𝕤 𝔹𝕒𝕔𝕜"
 ]
