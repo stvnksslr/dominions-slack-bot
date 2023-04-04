@@ -21,7 +21,7 @@ SLACK_APP_TOKEN = getenv("SLACK_APP_TOKEN")
 app = AsyncApp(token=SLACK_BOT_TOKEN)
 
 
-@app.message(compile("(grog)"))
+@app.message(compile("(?i)grog"))
 async def grog_responder(say):
     """
     when the word grog is mentioned in a channel the bot is present it
