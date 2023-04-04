@@ -10,8 +10,6 @@ from re import compile
 from slack_bolt.async_app import AsyncApp
 from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
 
-from app.client import reactions_add
-
 from src.controllers.grog import grog_response_list
 from src.controllers.mad import mad_reactions_list
 from src.controllers.snek_status import server_response_wrapper, server_details_wrapper
