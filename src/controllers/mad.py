@@ -16,5 +16,5 @@ mad_reactions_list = [
     "broke_and_mad",
     "definitely_mad",
     "definitely_not_mad",
-    "not_dam"
+    "not_dam",
 ]
