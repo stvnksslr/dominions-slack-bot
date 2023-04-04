@@ -1,10 +1,10 @@
-FROM python:3.9 AS build
+FROM python:3.11 AS build
 
 ENV PIP_DISABLE_PIP_VERSION_CHECK=on \
     POETRY_VIRTUALENVS_CREATE=true \
     POETRY_VIRTUALENVS_IN_PROJECT=true \
     PIP_NO_CACHE_DIR=off \
-    POETRY_VERSION=1.1.13
+    POETRY_VERSION=1.4.2
 
 WORKDIR /src
 
@@ -15,7 +15,7 @@ RUN pip install "poetry==$POETRY_VERSION"
 RUN poetry install --no-dev
 
 
-FROM python:3.9-slim-bullseye AS app
+FROM python:3.11-slim-bullseye AS app
 
 COPY --from=build /src/ ./
 

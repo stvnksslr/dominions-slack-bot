@@ -5,13 +5,12 @@ description = "A slack bot to help manage and update dominions 5 games"
 authors = ["Steven Kessler <stvnksslr@gmail.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.11"
 slack-bolt = "^1.11.4"
 aiohttp = "^3.8.1"
-uvloop = "^0.16.0"
+uvloop = "^0.17.0"
 pydantic = "^1.9.0"
 python-dotenv = "^0.19.2"
-
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"
