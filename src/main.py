@@ -41,6 +41,7 @@ async def mad_reactor(message, client):
     when someone is mad, let them know that they're mad
     """
     random_mad = choice(mad_reactions_list)
+
     await client.reactions_add(
         channel=message["channel"],
         timestamp=message["ts"],
