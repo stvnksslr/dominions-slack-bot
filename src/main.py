@@ -34,6 +34,7 @@ async def grog_responder(say):
     random_grog = choice(grog_response_list)
     await say(random_grog)
 
+
 @app.message(compile("(?i)mad"))
 async def mad_reactor(message, client):
     """
@@ -45,6 +46,7 @@ async def mad_reactor(message, client):
         timestamp=message["ts"],
         name=random_mad,
     )
+
 
 @app.event("message")
 async def handle_message_events():
