@@ -1,0 +1,20 @@
+mad_reactions_list = [
+    "mad",
+    "mad3d",
+    "madhd",
+    "madboy",
+    "madalso",
+    "alsomad",
+    "madcool",
+    "madkemon",
+    "madskull",
+    "mad_shake",
+    "madpumpkin",
+    "mad_shake_2",
+    "not_mad",
+    "megamad",
+    "broke_and_mad",
+    "definitely_mad",
+    "definitely_not_mad",
+    "not_dam"
+]

@@ -10,7 +10,10 @@ from re import compile
 from slack_bolt.async_app import AsyncApp
 from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
 
+from app.client import reactions_add
+
 from src.controllers.grog import grog_response_list
+from src.controllers.mad import mad_reactions_list
 from src.controllers.snek_status import server_response_wrapper, server_details_wrapper
 
 load_dotenv()
@@ -33,6 +36,17 @@ async def grog_responder(say):
     random_grog = choice(grog_response_list)
     await say(random_grog)
 
+@app.message(compile("(?i)mad"))
+async def mad_reactor(message, client):
+    """
+    when someone is mad, let them know that they're mad
+    """
+    random_mad = choice(mad_reactions_list)
+    await client.reactions_add(
+        channel=message["channel"],
+        timestamp=message["ts"],
+        name=random_mad,
+    )
 
 @app.event("message")
 async def handle_message_events():
