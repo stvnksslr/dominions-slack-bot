@@ -1,6 +1,6 @@
 from re import compile
 
-MAD_FINDER = compile(r"(?<![\w\d])mad(?![\w\d])")
+MAD_FINDER = compile(r"\bmad\b")
 
 
 def test__mad_reactor_returns_true():
