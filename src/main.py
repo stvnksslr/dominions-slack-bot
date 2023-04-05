@@ -35,7 +35,7 @@ async def grog_responder(say):
     await say(random_grog)
 
 
-@app.message(compile("(?<![\w\d])mad(?![\w\d])"))
+@app.message(compile(r"(?<![\w\d])mad(?![\w\d])"))
 async def mad_reactor(message, client):
     """
     when someone is mad, let them know that they're mad
