@@ -1,4 +1,3 @@
-from typing import Optional, List
 
 from pydantic import BaseModel, Field
 
@@ -9,7 +8,7 @@ class SnekServerDetails(BaseModel):
     game_id: int = Field(alias="id")
     name: str
     era: Era
-    port: Optional[None]
+    port: None
     hours: int
     hall_of_fame: int = Field(alias="hofsize")
     independents_strength: int = Field(alias="indepstr")
@@ -23,8 +22,8 @@ class SnekServerDetails(BaseModel):
     lvl_1_thrones: int = Field(alias="lvl1thrones")
     lvl_2_thrones: int = Field(alias="lvl2thrones")
     lvl_3_thrones: int = Field(alias="lvl3thrones")
-    total_vp: Optional[int] = Field(alias="totalvp")
-    required_vp: Optional[int] = Field(alias="requiredvp")
+    total_vp: int | None = Field(alias="totalvp")
+    required_vp: int | None = Field(alias="requiredvp")
     state: int
     user_id: int
     research: int
@@ -36,18 +35,18 @@ class SnekServerDetails(BaseModel):
     score_graphs: bool = Field(alias="scoregraphs")
     no_nation_info: bool = Field(alias="nonationinfo")
     map_id: int
-    deleted_at: Optional[None]
+    deleted_at: None
     status: int
     shortname: str
     summer_vp: bool = Field(alias="summervp")
     capital_vp: bool = Field(alias="capitalvp")
-    cataclysm: Optional[int]
+    cataclysm: int | None
     max_globals: int = Field(alias="globals")
     story_events: int = Field(alias="storyevents")
     no_rand_research: bool = Field(alias="norandres")
     recruitment: int
-    mods: List
-    nation_rules: List
+    mods: list
+    nation_rules: list
 
     class Config:
         allow_population_by_field_name = True

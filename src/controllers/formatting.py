@@ -1,9 +1,8 @@
-from typing import List
 
 from src.models.snek_server_details import SnekServerDetails
 
 
-def create_nations_block(nations) -> List:
+def create_nations_block(nations) -> list:
     """
     Attempts to create and format a slack modal
 
@@ -42,7 +41,7 @@ def create_nations_block(nations) -> List:
     return player_blocks
 
 
-def create_game_details_block(game_name, turn, remaining_time, port) -> List:
+def create_game_details_block(game_name, turn, remaining_time, port) -> list:
     """
     Attempt to format general server details
 
@@ -83,7 +82,7 @@ def create_game_details_block(game_name, turn, remaining_time, port) -> List:
     return formatted_msg
 
 
-def format_server_details(details: SnekServerDetails) -> List:
+def format_server_details(details: SnekServerDetails) -> list:
     """
     Formats a general rundown of all the server settings as tracked by snek.earth
 

@@ -1,14 +1,14 @@
+
 from aiohttp.client import ClientSession
 
 from src.controllers.formatting import (
-    create_nations_block,
     create_game_details_block,
+    create_nations_block,
     format_server_details,
 )
 from src.controllers.server_status import query_game_server
 from src.models.nation import Nation
 from src.models.snek_server_details import SnekServerDetails
-from typing import Dict, List
 
 
 async def server_details_wrapper(port):
@@ -57,7 +57,7 @@ async def fetch_snek_game_details(
     return parsed_response
 
 
-async def fetch_snek_nation_status(port: str, session: ClientSession) -> List[Nation]:
+async def fetch_snek_nation_status(port: str, session: ClientSession) -> list[Nation]:
     """
     Fetches player status for a given game
 
@@ -71,7 +71,7 @@ async def fetch_snek_nation_status(port: str, session: ClientSession) -> List[Na
     return parsed_response
 
 
-def parse_snek_player_details(player_status_response: Dict) -> List[Nation]:
+def parse_snek_player_details(player_status_response: dict) -> list[Nation]:
     """
     takes in a snek.earth player status response and returns a list of parsed nations
 

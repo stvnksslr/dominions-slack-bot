@@ -1,18 +1,16 @@
+from asyncio import run
 from os import getenv
 from random import choice
-
-from dotenv import load_dotenv
-from asyncio import run
-
-from uvloop import install as uvloop_setup
 from re import compile
 
-from slack_bolt.async_app import AsyncApp
+from dotenv import load_dotenv
 from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
+from slack_bolt.async_app import AsyncApp
+from uvloop import install as uvloop_setup
 
 from src.controllers.grog import grog_response_list
 from src.controllers.mad import mad_reactions_list
-from src.controllers.snek_status import server_response_wrapper, server_details_wrapper
+from src.controllers.snek_status import server_details_wrapper, server_response_wrapper
 
 load_dotenv()
 
@@ -56,7 +54,6 @@ async def handle_message_events():
 
     :return:
     """
-    pass
 
 
 @app.command("/details")

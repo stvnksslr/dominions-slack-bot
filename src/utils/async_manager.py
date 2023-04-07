@@ -1,4 +1,4 @@
-from asyncio import gather, Semaphore
+from asyncio import Semaphore, gather
 
 
 async def gather_with_concurrency(number_of_tasks, *tasks) -> gather:
