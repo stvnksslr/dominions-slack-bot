@@ -4,11 +4,11 @@ from zlib import decompress
 
 from src.models.server_details import ServerDetails
 from src.utils.socket_request_constants import (
-    PACKET_HEADER,
-    PACKET_GENERAL_INFO,
-    PACKET_BYTES_PER_NATION,
-    PACKET_NUM_NATIONS,
     PACKED_GAME_REQUEST,
+    PACKET_BYTES_PER_NATION,
+    PACKET_GENERAL_INFO,
+    PACKET_HEADER,
+    PACKET_NUM_NATIONS,
 )
 
 
@@ -44,10 +44,7 @@ def query_game_server(address: str, port: str) -> ServerDetails:
 def parse_raw_server_data(result):
     header = unpack(PACKET_HEADER, result[0:7])
     compressed = header[1] == b"J"
-    if compressed:
-        data = decompress(result[10:])
-    else:
-        data = result[10:]
+    data = decompress(result[10:]) if compressed else result[10:]
     game_name_length = (
         len(data)
         - len(PACKET_GENERAL_INFO.format("", ""))

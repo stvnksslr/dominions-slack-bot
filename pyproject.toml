@@ -14,18 +14,84 @@ python-dotenv = "^1.0.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.3.0"
+ruff = "^0.0.261"
 pytest = "^7.2.2"
 pytest-cov = "^4.0.0"
 pytest-sugar = "^0.9.6 "
 pytest-asyncio = "^0.21.0"
-pep8-naming = "^0.13.3 "
-flake8 = "^6.0.0 "
-flake8-pytest = "^1.4 "
-flake8-functions = "^0.0.7"
-flake8-variables-names = "^0.0.5"
-flake8-bugbear = "^23.3.23"
-flake8-comprehensions = "^3.11.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+line-length = 120
+ignore = [
+  "B008",    # function-call-in-default-argument (B008)
+  "S101",    # Use of `assert` detected
+  "RET504",  # Unnecessary variable assignment before `return` statement
+  "PLR2004", # Magic value used in comparison, consider replacing {value} with a constant variable
+  "ARG001",  # Unused function argument: `{name}`
+  "S311",    # Standard pseudo-random generators are not suitable for cryptographic purposes
+]
+select = [
+  "A",
+  "B",
+  "E",
+  "F",
+  "N",
+  "RET",
+  "S",
+  "W",
+  "Q",
+  "C90",
+  "I",
+  "UP",
+  "BLE",
+  "C4",
+  "ISC",
+  "ICN",
+  "PT",
+  "PIE",
+  "T20",
+  "SIM",
+  "TCH",
+  "ARG",
+  "PTH",
+  "ERA",
+  "PL",
+  "PLE",
+  "PLR",
+  "PLW",
+  "RUF",
+]
+exclude = [
+  ".eggs",
+  ".git",
+  ".pytype",
+  ".ruff_cache",
+  ".venv",
+  "__pypackages__",
+  ".venv",
+]
+
+[tool.black]
+line-length = 120
+target-version = ['py38']
+include = '\.pyi?$'
+exclude = '''
+(
+  /(
+      \.eggs         # exclude a few common directories in the
+    | \.git          # root of the project
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | _build
+    | buck-out
+    | build
+    | dist
+  )
+)
+'''
