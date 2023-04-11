@@ -11,4 +11,5 @@ grog_response_list = [
     ":dread:",
     "Grogtech is Back",
     "https://files.slack.com/files-pri/T2959UF1P-F051BGQTELF/grog.png",
+    "https://files.slack.com/files-pri/T2959UF1P-F0533MG0K2M/zsd.png",
 ]
