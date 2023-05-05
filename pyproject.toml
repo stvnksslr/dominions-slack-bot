@@ -33,6 +33,7 @@ ignore = [
   "PLR2004", # Magic value used in comparison, consider replacing {value} with a constant variable
   "ARG001",  # Unused function argument: `{name}`
   "S311",    # Standard pseudo-random generators are not suitable for cryptographic purposes
+  "E501"
 ]
 select = [
   "A",
