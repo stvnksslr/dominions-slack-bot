@@ -18,6 +18,6 @@ grog_response_list = [
     ":_l: :_o: :_v: :_e: :_l: :_y:",
     ":warelephant:",
     "_wet war elephant growl_",
-    "Once there were brook trout in the streams in the mountains. You could see them standing in the amber current where the white edges of their fins wimpled softly in the flow. They smelled of moss in your hand. Polished and muscular and torsional.", 
+    "Once there were brook trout in the streams in the mountains. You could see them standing in the amber current where the white edges of their fins wimpled softly in the flow. They smelled of moss in your hand. Polished and muscular and torsional.",
     "On their backs were vermiculate patterns that were maps of the world in its becoming. Maps and mazes. Of a thing which could not be put back. Not be made right again. In the deep glens where they lived all things were older than man and they hummed of mystery.",
 ]
