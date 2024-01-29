@@ -4,7 +4,7 @@ ENV PIP_DISABLE_PIP_VERSION_CHECK=on \
     POETRY_VIRTUALENVS_CREATE=true \
     POETRY_VIRTUALENVS_IN_PROJECT=true \
     PIP_NO_CACHE_DIR=off \
-    POETRY_VERSION=1.4.2
+    POETRY_VERSION=1.7.1
 
 WORKDIR /src
 
@@ -12,7 +12,7 @@ COPY ./src /src/src/
 COPY pyproject.toml poetry.lock /src/
 
 RUN pip install "poetry==$POETRY_VERSION"
-RUN poetry install --no-dev
+RUN poetry install --only main
 
 
 FROM python:3.12-slim-bullseye AS app
