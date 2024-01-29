@@ -11,6 +11,8 @@ aiohttp = "^3.8.4"
 uvloop = "^0.17.0"
 pydantic = "^1.10.7"
 python-dotenv = "^1.0.0"
+httpx = {extras = ["brotli"], version = "^0.26.0"}
+beautifulsoup4 = "^4.12.3"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.3.0"
@@ -33,7 +35,8 @@ ignore = [
   "PLR2004", # Magic value used in comparison, consider replacing {value} with a constant variable
   "ARG001",  # Unused function argument: `{name}`
   "S311",    # Standard pseudo-random generators are not suitable for cryptographic purposes
-  "E501"
+  "E501",
+  "F401"
 ]
 select = [
   "A",
