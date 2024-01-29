@@ -5,16 +5,20 @@ def create_nations_block(player_list) -> list:
     """
     Attempts to create and format a slack modal
 
-    :param nations:
+    :param player_list:
     :return:
     """
     player_blocks = []
 
     for player in player_list:
+        if player.turn_status == "Turn played":
+            player.turn_emoji = ":white_check_mark:"
+        if player.turn_status == "-":
+            player.turn_emoji = ":x:"
 
         nation_section = {
             "type": "section",
-            "text": {"type": "mrkdwn", "text": f"{player.turn_status}  *{player.name}*"},
+            "text": {"type": "mrkdwn", "text": f"{player.turn_emoji} | *{player.name}*"},
         }
 
         player_blocks.append(nation_section)
