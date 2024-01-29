@@ -47,15 +47,6 @@ async def mad_reactor(message, client):
     )
 
 
-@app.event("message")
-async def handle_message_events():
-    """
-    generic message handler to make sure messages get handled in some way
-
-    :return:
-    """
-
-
 @app.command("/check")
 async def fetch_server_status(ack, say, command):
     """
@@ -73,6 +64,15 @@ async def fetch_server_status(ack, say, command):
 
     await ack()
     await say(blocks=formatted_response, text="status")
+
+
+@app.event("message")
+async def handle_message_events():
+    """
+    generic message handler to make sure messages get handled in some way
+
+    :return:
+    """
 
 
 async def main():
