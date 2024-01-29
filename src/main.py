@@ -9,8 +9,8 @@ from slack_bolt.async_app import AsyncApp
 from uvloop import install as uvloop_setup
 
 from src.controllers.grog import grog_response_list
+from src.controllers.lobby_details import fetch_lobby_details, format_lobby_details
 from src.controllers.mad import mad_reactions_list
-from src.controllers.snek_status import server_details_wrapper, server_response_wrapper
 
 load_dotenv()
 
@@ -56,22 +56,6 @@ async def handle_message_events():
     """
 
 
-@app.command("/details")
-async def fetch_server_details(ack, say, command):
-    """
-    Request all server settings from snek.earth
-
-    :param ack:
-    :param say:
-    :param command:
-    :return:
-    """
-    command_context = command["text"]
-    formatted_game_details = await server_details_wrapper(port=command_context)
-    await ack()
-    await say(blocks=formatted_game_details, text="status")
-
-
 @app.command("/check")
 async def fetch_server_status(ack, say, command):
     """
@@ -83,7 +67,10 @@ async def fetch_server_status(ack, say, command):
     :return:
     """
     command_context = command["text"]
-    formatted_response = await server_response_wrapper(port=command_context)
+
+    game_details = fetch_lobby_details(command_context)
+    formatted_response = format_lobby_details(game_details)
+
     await ack()
     await say(blocks=formatted_response, text="status")
 
