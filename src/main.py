@@ -68,7 +68,7 @@ async def fetch_server_status(ack, say, command):
     """
     command_context = command["text"]
 
-    game_details = fetch_lobby_details(command_context)
+    game_details = await fetch_lobby_details(command_context)
     formatted_response = format_lobby_details(game_details)
 
     await ack()
