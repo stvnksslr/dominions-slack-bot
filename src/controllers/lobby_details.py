@@ -11,14 +11,15 @@ async def fetch_lobby_details(server_name: str) -> LobbyDetails:
     async with ClientSession() as session, session.get(formatted_url) as response:
         parsed_response = beatiful_soup(await response.text(), "html.parser")
 
-        game_info = parsed_response.find_all("tr")
-        current_game = LobbyDetails(server_info=game_info[0].text, player_status=[])
+    game_info = parsed_response.find_all("tr")
+    current_game = LobbyDetails(server_info=game_info[0].text, player_status=[])
 
-        for player in game_info[1:]:
-            player_status = PlayerStatus(name=player.find_all("td")[0].text, turn_status=player.find_all("td")[1].text)
-            current_game.player_status.append(player_status)
+    # the first line is always the server status so its skipped here
+    for player in game_info[1:]:
+        name, turn_status = player.find_all("td")[:2]
+        current_game.player_status.append(PlayerStatus(name=name.text, turn_status=turn_status.text))
 
-        return current_game
+    return current_game
 
 
 def format_lobby_details(lobby_details: LobbyDetails):

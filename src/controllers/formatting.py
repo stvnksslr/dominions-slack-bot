@@ -1,6 +1,23 @@
 from src.models import LobbyDetails
 
 
+def get_emoji(turn_status):
+    """
+    This function takes a player's turn status as an argument and returns an emoji that corresponds to the status.
+    The function uses Python's match statement to check the value of turn_status and return the appropriate emoji.
+
+    :param turn_status: A string representing the player's turn status. Expected values include "Turn played" or "-".
+    :return: A string representing an emoji.
+    """
+    match turn_status:
+        case "Turn played":
+            return ":white_check_mark:"
+        case "-":
+            return ":x:"
+        case _:
+            return ":question:"
+
+
 def create_nations_block(player_list) -> list:
     """
     Attempts to create and format a slack modal
@@ -11,10 +28,7 @@ def create_nations_block(player_list) -> list:
     player_blocks = []
 
     for player in player_list:
-        if player.turn_status == "Turn played":
-            player.turn_emoji = ":white_check_mark:"
-        if player.turn_status == "-":
-            player.turn_emoji = ":x:"
+        player.turn_emoji = get_emoji(player.turn_status)
 
         nation_section = {
             "type": "section",
