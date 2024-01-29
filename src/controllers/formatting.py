@@ -18,7 +18,7 @@ def create_nations_block(player_list) -> list:
 
         nation_section = {
             "type": "section",
-            "text": {"type": "mrkdwn", "text": f"{player.turn_emoji} | *{player.name}*"},
+            "text": {"type": "mrkdwn", "text": f"{player.turn_emoji} - *{player.name}*"},
         }
 
         player_blocks.append(nation_section)
@@ -27,7 +27,7 @@ def create_nations_block(player_list) -> list:
 
 def create_game_details_block(lobby_details: LobbyDetails):
     """
-    Attempt to format general server details
+    Attempt to format general lobby details
 
     :return:
     """
@@ -50,6 +50,5 @@ def create_game_details_block(lobby_details: LobbyDetails):
         },
         {"type": "divider"},
         {"type": "section", "text": {"type": "mrkdwn", "text": "*Player List*"}},
-
     ]
     return formatted_msg
