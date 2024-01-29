@@ -11,7 +11,7 @@ uvloop = "^0.19.0"
 pydantic = "^2.6.0"
 python-dotenv = "^1.0.1"
 beautifulsoup4 = "^4.12.3"
-aiohttp = {extras = ["speedups"], version = "^3.9.2"}
+aiohttp = { extras = ["speedups"], version = "^3.9.2" }
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.1.14"
@@ -34,7 +34,8 @@ ignore = [
     "ARG001", # Unused function argument: `{name}`
     "S311", # Standard pseudo-random generators are not suitable for cryptographic purposes
     "E501", # Checks for lines that exceed the specified maximum character length. / the dumb grog messages are too long
-    "F401"     # Checks for unused imports. / causes issues with init.py bundling modules
+    "F401", # Checks for unused imports. / causes issues with init.py bundling modules
+    "ISC001" # hecks for implicitly concatenated strings on a single line.
 ]
 select = [
     "A",
