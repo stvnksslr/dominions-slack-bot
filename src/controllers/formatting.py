@@ -12,10 +12,12 @@ def get_emoji(turn_status):
     match turn_status:
         case "Turn played":
             return ":white_check_mark:"
+        case "Turn unfinished":
+            return ":question:"
         case "-":
             return ":x:"
         case _:
-            return ":question:"
+            return ":gungoose:"
 
 
 def create_nations_block(player_list) -> list:
