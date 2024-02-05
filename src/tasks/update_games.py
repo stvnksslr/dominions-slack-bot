@@ -19,15 +19,14 @@ async def update_games_wrapper():
             logger.info(f"querying {game.name} from dominions server")
             try:
                 game_details = await fetch_lobby_details(game.name)
-                logger.info(f"turn {game_details.turn}")
                 logger.info("updating")
+
+                logger.info(f"turn {game_details.turn}")
+                logger.info(f"turn {game_details.time_left}")
 
                 if game.turn < int(game_details.turn):
                     logger.info("new turn")
-                    try:
-                        await Game.filter(name=game.name).update(turn=game_details.turn)
-                    except Exception as error:
-                        logger.error(error)
+                    await Game.filter(name=game.name).update(turn=game_details.turn, time_left=game_details.time_left)
 
                 for player in game_details.player_status:
                     logger.info(f"updating player {player.name}")

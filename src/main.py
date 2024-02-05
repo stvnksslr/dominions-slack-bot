@@ -11,6 +11,7 @@ from uvloop import install as uvloop_setup
 
 from src.controllers.command_parser import command_parser_wrapper
 from src.controllers.lobby_details import fetch_lobby_details, format_lobby_details
+from src.controllers.lobby_details_v2 import turn_command_wrapper
 from src.responses import grog_response_list, mad_reactions_list
 from src.tasks.update_games import update_games_wrapper
 from src.utils.db_manager import init
@@ -78,6 +79,13 @@ async def fetch_server_status(ack, say, command):
     await say(blocks=formatted_response, text="status")
 
 
+@app.command("/turn")
+async def turn_command(ack, say):
+    formatted_response = await turn_command_wrapper()
+    await ack()
+    await say(blocks=formatted_response, text="status")
+
+
 @app.event("message")
 async def handle_message_events():
     """
@@ -90,7 +98,10 @@ async def handle_message_events():
 async def periodic_task():
     while True:
         logger.info("Running task...")
-        await update_games_wrapper()
+        try:
+            await update_games_wrapper()
+        except Exception as error:
+            logger.error(error)
         await sleep(900)  # wait for 15 mins
 
 
