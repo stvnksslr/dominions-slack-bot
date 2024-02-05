@@ -2,6 +2,7 @@
 .env
 .idea
 .vscode
+dsb.sqlite3
 
 **/*.pytest_cache
 **/*__pycache__

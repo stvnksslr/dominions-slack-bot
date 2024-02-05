@@ -4,13 +4,14 @@ from random import choice
 from re import compile
 
 from dotenv import load_dotenv
+from loguru import logger
 from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
 from slack_bolt.async_app import AsyncApp
 from uvloop import install as uvloop_setup
 
-from src.controllers.grog import grog_response_list
 from src.controllers.lobby_details import fetch_lobby_details, format_lobby_details
-from src.controllers.mad import mad_reactions_list
+from src.responses import grog_response_list, mad_reactions_list
+from src.utils.db_manager import init
 
 load_dotenv()
 
@@ -81,6 +82,7 @@ async def main():
 
     :return:
     """
+    await init()
     handler = AsyncSocketModeHandler(app, SLACK_APP_TOKEN)
     await handler.start_async()
 

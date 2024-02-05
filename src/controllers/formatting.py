@@ -1,4 +1,4 @@
-from src.models import LobbyDetails
+from src.models.app.lobby_details import LobbyDetails
 
 
 def get_emoji(turn_status):
