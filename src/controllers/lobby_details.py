@@ -13,7 +13,9 @@ async def fetch_lobby_details(server_name: str) -> LobbyDetails:
         parsed_response = beautiful_soup(await response.text(), "html.parser")
 
     game_info = parsed_response.find_all("tr")
-    current_game = LobbyDetails(server_info=game_info[0].text, player_status=[])
+    current_game = LobbyDetails(
+        server_info=game_info[0].text, player_status=[], turn=game_info[0].text.split(",")[1].split()[1]
+    )
 
     # the first line is always the server status so its skipped here
     for player in game_info[1:]:

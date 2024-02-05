@@ -10,9 +10,10 @@ if TYPE_CHECKING:
 
 class Game(BaseModel):
     name = fields.TextField()
-    nickname = fields.TextField()
-    active = fields.BooleanField()
-    turn = fields.IntField()
+    primary_game = fields.BooleanField(default=False)
+    nickname = fields.TextField(default="")
+    active = fields.BooleanField(default=True)
+    turn = fields.IntField(default=0)
     players: fields.ManyToManyRelation["Player"] = fields.ManyToManyField(
-        "models.Player", related_name="games", through="game_player"
+        "models.Player", related_name="games", on_delete=fields.OnDelete.CASCADE
     )
