@@ -15,9 +15,10 @@ CREATE TABLE IF NOT EXISTS "game" (
     "updated_at" TIMESTAMP NOT NULL  DEFAULT CURRENT_TIMESTAMP,
     "deleted_at" TIMESTAMP NOT NULL  DEFAULT CURRENT_TIMESTAMP,
     "name" TEXT NOT NULL,
+    "primary_game" INT NOT NULL  DEFAULT 0,
     "nickname" TEXT NOT NULL,
-    "active" INT NOT NULL,
-    "turn" INT NOT NULL
+    "active" INT NOT NULL  DEFAULT 1,
+    "turn" INT NOT NULL  DEFAULT 0
 );
 CREATE TABLE IF NOT EXISTS "player" (
     "id" CHAR(36) NOT NULL  PRIMARY KEY,
@@ -25,8 +26,10 @@ CREATE TABLE IF NOT EXISTS "player" (
     "updated_at" TIMESTAMP NOT NULL  DEFAULT CURRENT_TIMESTAMP,
     "deleted_at" TIMESTAMP NOT NULL  DEFAULT CURRENT_TIMESTAMP,
     "nation" TEXT NOT NULL,
-    "player_name" TEXT NOT NULL,
-    "turn_played" INT NOT NULL
+    "short_name" TEXT NOT NULL,
+    "player_name" TEXT,
+    "turn_status" TEXT NOT NULL,
+    "game_id" CHAR(36) NOT NULL REFERENCES "game" ("id") ON DELETE CASCADE
 );
 CREATE TABLE IF NOT EXISTS "game_player" (
     "game_id" CHAR(36) NOT NULL REFERENCES "game" ("id") ON DELETE CASCADE,

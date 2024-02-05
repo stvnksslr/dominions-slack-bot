@@ -6,3 +6,4 @@ from .player_status import PlayerStatus
 class LobbyDetails(BaseModel):
     server_info: str
     player_status: list[PlayerStatus]
+    turn: str
