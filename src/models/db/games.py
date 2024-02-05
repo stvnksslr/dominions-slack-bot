@@ -14,6 +14,7 @@ class Game(BaseModel):
     nickname = fields.TextField(default="")
     active = fields.BooleanField(default=True)
     turn = fields.IntField(default=0)
+    time_left = fields.TextField(null=True)
     players: fields.ManyToManyRelation["Player"] = fields.ManyToManyField(
         "models.Player", related_name="games", on_delete=fields.OnDelete.CASCADE
     )
