@@ -1,11 +1,9 @@
 from asyncio import create_task, run, sleep
-from os import getenv
 from random import choice
 from re import compile
 
 from loguru import logger
 from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
-from slack_bolt.async_app import AsyncApp
 from uvloop import install as uvloop_setup
 
 from src.controllers.command_parser import command_parser_wrapper
@@ -13,10 +11,9 @@ from src.controllers.lobby_details import fetch_lobby_details, format_lobby_deta
 from src.controllers.lobby_details_v2 import turn_command_wrapper
 from src.responses import grog_response_list, mad_reactions_list
 from src.tasks.update_games import update_games_wrapper
-from src.utils.constants import SLACK_APP_TOKEN, SLACK_BOT_TOKEN
+from src.utils.constants import SLACK_APP_TOKEN
 from src.utils.db_manager import init
-
-app = AsyncApp(token=SLACK_BOT_TOKEN)
+from src.utils.slack_manager import app
 
 
 @app.message(compile("(?i)grog"))
