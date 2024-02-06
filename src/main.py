@@ -3,7 +3,6 @@ from os import getenv
 from random import choice
 from re import compile
 
-from dotenv import load_dotenv
 from loguru import logger
 from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
 from slack_bolt.async_app import AsyncApp
@@ -14,12 +13,8 @@ from src.controllers.lobby_details import fetch_lobby_details, format_lobby_deta
 from src.controllers.lobby_details_v2 import turn_command_wrapper
 from src.responses import grog_response_list, mad_reactions_list
 from src.tasks.update_games import update_games_wrapper
+from src.utils.constants import SLACK_APP_TOKEN, SLACK_BOT_TOKEN
 from src.utils.db_manager import init
-
-load_dotenv()
-
-SLACK_BOT_TOKEN = getenv("SLACK_BOT_TOKEN")
-SLACK_APP_TOKEN = getenv("SLACK_APP_TOKEN")
 
 app = AsyncApp(token=SLACK_BOT_TOKEN)
 
@@ -98,10 +93,7 @@ async def handle_message_events():
 async def periodic_task():
     while True:
         logger.info("Running task...")
-        try:
-            await update_games_wrapper()
-        except Exception as error:
-            logger.error(error)
+        await update_games_wrapper()
         await sleep(900)  # wait for 15 mins
 
 

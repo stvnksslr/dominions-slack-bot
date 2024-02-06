@@ -2,8 +2,10 @@ import tortoise
 from loguru import logger
 from tortoise import Tortoise
 
+from src.utils.constants import DB_URI
+
 TORTOISE_ORM = {
-    "connections": {"default": "sqlite://dsb.sqlite3?journal_mode=OFF"},
+    "connections": {"default": DB_URI},
     "apps": {
         "models": {
             "models": [
@@ -18,4 +20,4 @@ TORTOISE_ORM = {
 
 async def init():
     logger.info("connecting to db.....")
-    await Tortoise.init(db_url="sqlite://dsb.sqlite3?journal_mode=OFF", modules={"models": ["src.models.db"]})
+    await Tortoise.init(db_url=DB_URI, modules={"models": ["src.models.db"]})
