@@ -1,11 +1,11 @@
 version: '3.8'
 
 services:
-#  bot:
-#    build:
-#      dockerfile: dockerfile
-#    env_file:
-#      - .env
+  #  bot:
+  #    build:
+  #      dockerfile: dockerfile
+  #    env_file:
+  #      - .env
 
   #  migration:
   #    build:
@@ -16,16 +16,16 @@ services:
   #    depends_on:
   #      - db
 
-#  db:
-#    image: postgres:14
-#    environment:
-#      - POSTGRES_DB=devdb
-#      - POSTGRES_USER=devdb
-#      - POSTGRES_PASSWORD=password
-#    ports:
-#      - "5432:5432"
-#    volumes:
-#      - db-dev:/var/lib/postgresql/data
+  #  db:
+  #    image: postgres:14
+  #    environment:
+  #      - POSTGRES_DB=devdb
+  #      - POSTGRES_USER=devdb
+  #      - POSTGRES_PASSWORD=password
+  #    ports:
+  #      - "5432:5432"
+  #    volumes:
+  #      - db-dev:/var/lib/postgresql/data
 
   db:
     image: mysql:8.0
@@ -41,7 +41,6 @@ services:
       - '3306:3306'
     volumes:
       - db:/var/lib/mysql
-      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
 
 volumes:
-  db: { }
+  db: {}
