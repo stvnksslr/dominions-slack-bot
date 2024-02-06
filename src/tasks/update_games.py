@@ -1,7 +1,10 @@
 from loguru import logger
+from slack_sdk.errors import SlackApiError
 
 from src.controllers.lobby_details import fetch_lobby_details
+from src.controllers.lobby_details_v2 import turn_command_wrapper
 from src.models.db import Game, Player
+from src.utils.slack_manager import client
 
 
 class UpdateError(Exception):
@@ -10,6 +13,15 @@ class UpdateError(Exception):
 
 class GameDetailsFetchError(Exception):
     pass
+
+
+async def send_turn_update():
+    formatted_response = await turn_command_wrapper()
+    channel_id = "#grog_hole"
+    try:
+        await client.chat_postMessage(channel=channel_id, text="status", blocks=formatted_response)
+    except SlackApiError as e:
+        logger.error(e)
 
 
 async def update_games_wrapper():
@@ -25,9 +37,9 @@ async def update_games_wrapper():
         logger.info(f"turn {game_details.time_left}")
 
         if game.turn < int(game_details.turn):
-            logger.info("new turn")
+            logger.info("new turn detected")
             await Game.filter(name=game.name).update(turn=game_details.turn, time_left=game_details.time_left)
-            # TODO: send message to slack channel
+            await send_turn_update()
 
         for player in game_details.player_status:
             logger.info(f"updating player {player.name}")
