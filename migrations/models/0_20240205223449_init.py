@@ -18,7 +18,8 @@ CREATE TABLE IF NOT EXISTS "game" (
     "primary_game" INT NOT NULL  DEFAULT 0,
     "nickname" TEXT NOT NULL,
     "active" INT NOT NULL  DEFAULT 1,
-    "turn" INT NOT NULL  DEFAULT 0
+    "turn" INT NOT NULL  DEFAULT 0,
+    "time_left" TEXT
 );
 CREATE TABLE IF NOT EXISTS "player" (
     "id" CHAR(36) NOT NULL  PRIMARY KEY,
