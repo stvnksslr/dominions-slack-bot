@@ -7,5 +7,4 @@ load_dotenv()
 SLACK_BOT_TOKEN = getenv("SLACK_BOT_TOKEN")
 SLACK_APP_TOKEN = getenv("SLACK_APP_TOKEN")
 
-
-DB_URI = getenv("DATABASE_URI")
+DB_URI = getenv("DB_URI")
