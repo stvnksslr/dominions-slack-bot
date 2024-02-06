@@ -49,7 +49,7 @@ lint.ignore = [
     "F401", # Checks for unused imports. / causes issues with init.py bundling modules
     "ISC001" # hecks for implicitly concatenated strings on a single line.
 ]
-select = [
+lint.select = [
     "A",
     "B",
     "E",
