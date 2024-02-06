@@ -27,6 +27,7 @@ async def update_games_wrapper():
         if game.turn < int(game_details.turn):
             logger.info("new turn")
             await Game.filter(name=game.name).update(turn=game_details.turn, time_left=game_details.time_left)
+            # TODO: send message to slack channel
 
         for player in game_details.player_status:
             logger.info(f"updating player {player.name}")
