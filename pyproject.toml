@@ -12,13 +12,25 @@ pydantic = "^2.6.0"
 python-dotenv = "^1.0.1"
 beautifulsoup4 = "^4.12.3"
 aiohttp = { extras = ["speedups"], version = "^3.9.2" }
+tortoise-orm = { extras = ["accel"], version = "^0.20.0" }
+loguru = "^0.7.2"
 
 [tool.poetry.group.dev.dependencies]
-ruff = "^0.1.14"
+ruff = "^0.2.0"
 pytest = "^7.4.4"
 pytest-cov = "^4.1.0"
 pytest-sugar = "^0.9.7"
 pytest-asyncio = "0.23.4"
+aerich = "^0.7.2"
+mypy = "^1.8.0"
+
+[tool.poetry.group.types.dependencies]
+types-beautifulsoup4 = "^4.12.0.20240106"
+
+[tool.aerich]
+tortoise_orm = "src.utils.db_manager.TORTOISE_ORM"
+location = "./migrations"
+src_folder = "./."
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -26,7 +38,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
 line-length = 120
-ignore = [
+lint.ignore = [
     "B008", # function-call-in-default-argument (B008)
     "S101", # Use of `assert` detected
     "RET504", # Unnecessary variable assignment before `return` statement
