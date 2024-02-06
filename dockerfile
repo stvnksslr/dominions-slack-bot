@@ -23,3 +23,4 @@ ENV VIRTUAL_ENV=/.venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 CMD ["python", "-m", "src.main"]
+
