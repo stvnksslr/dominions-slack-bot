@@ -100,7 +100,7 @@ def create_game_details_block_from_db(game_details: Game):
         },
         {
             "type": "section",
-            "text": {"type": "mrkdwn", "text": f"Time left: {game_details.time_left}"},
+            "text": {"type": "mrkdwn", "text": f"{game_details.time_left}"},
         },
         {"type": "divider"},
         {"type": "section", "text": {"type": "mrkdwn", "text": "*Player List*"}},
