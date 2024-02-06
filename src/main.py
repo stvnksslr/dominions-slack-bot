@@ -45,7 +45,15 @@ async def mad_reactor(message, client):
 
 @app.command("/dom")
 async def handle_add_game_command(ack, say, command):
-    # todo: command parser?
+    """
+    This function handles the '/dom' command in the Slack bot. It takes three parameters:
+    'ack', 'say', and 'command'.
+
+    :param ack: function to acknowledge the command
+    :param say: function to send a message back to the user
+    :param command: dictionary containing the command text
+    :return: None
+    """
     response = await command_parser_wrapper(command["text"])
 
     await ack()
