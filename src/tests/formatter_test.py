@@ -1,7 +1,8 @@
 import pytest
 
 from src.controllers.formatting import create_game_details_block, create_nations_block
-from src.models import LobbyDetails, PlayerStatus
+from src.models.app.lobby_details import LobbyDetails
+from src.models.app.player_status import PlayerStatus
 
 
 def test_create_game_details_block_with_valid_lobby_details():

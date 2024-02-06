@@ -1,16 +1,20 @@
-from asyncio import run
+from asyncio import create_task, run, sleep
 from os import getenv
 from random import choice
 from re import compile
 
 from dotenv import load_dotenv
+from loguru import logger
 from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
 from slack_bolt.async_app import AsyncApp
 from uvloop import install as uvloop_setup
 
-from src.controllers.grog import grog_response_list
+from src.controllers.command_parser import command_parser_wrapper
 from src.controllers.lobby_details import fetch_lobby_details, format_lobby_details
-from src.controllers.mad import mad_reactions_list
+from src.controllers.lobby_details_v2 import turn_command_wrapper
+from src.responses import grog_response_list, mad_reactions_list
+from src.tasks.update_games import update_games_wrapper
+from src.utils.db_manager import init
 
 load_dotenv()
 
@@ -47,6 +51,15 @@ async def mad_reactor(message, client):
     )
 
 
+@app.command("/dom")
+async def handle_add_game_command(ack, say, command):
+    # todo: command parser?
+    response = await command_parser_wrapper(command["text"])
+
+    await ack()
+    await say(response)
+
+
 @app.command("/check")
 async def fetch_server_status(ack, say, command):
     """
@@ -66,6 +79,13 @@ async def fetch_server_status(ack, say, command):
     await say(blocks=formatted_response, text="status")
 
 
+@app.command("/turn")
+async def turn_command(ack, say):
+    formatted_response = await turn_command_wrapper()
+    await ack()
+    await say(blocks=formatted_response, text="status")
+
+
 @app.event("message")
 async def handle_message_events():
     """
@@ -75,14 +95,27 @@ async def handle_message_events():
     """
 
 
+async def periodic_task():
+    while True:
+        logger.info("Running task...")
+        try:
+            await update_games_wrapper()
+        except Exception as error:
+            logger.error(error)
+        await sleep(900)  # wait for 15 mins
+
+
 async def main():
     """
     main method to encapsulate the app
 
     :return:
     """
+    await init()
+    task = create_task(periodic_task())
     handler = AsyncSocketModeHandler(app, SLACK_APP_TOKEN)
     await handler.start_async()
+    task.cancel()
 
 
 # Start your app
