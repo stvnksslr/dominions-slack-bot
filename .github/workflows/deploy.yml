@@ -23,7 +23,8 @@ jobs:
         with:
           images: ghcr.io/${{github.repository}}
           tags: |
-            type=raw,value={{date 'YYYYMMDD-hhmmss'}}
+            type=sha
+            type=raw,value={{sha}}-t-{{date 'YYYYMMDD-hhmmss'}}
       #----------------------------------------------
       #          setup extra builder
       #----------------------------------------------
