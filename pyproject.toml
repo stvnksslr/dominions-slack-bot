@@ -15,6 +15,7 @@ aiohttp = { extras = ["speedups"], version = "^3.9.2" }
 tortoise-orm = {extras = ["accel", "asyncmy"], version = "^0.20.0"}
 loguru = "^0.7.2"
 cryptography = "^42.0.2"
+aerich = "^0.7.2"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.2.0"
@@ -22,7 +23,6 @@ pytest = "^7.4.4"
 pytest-cov = "^4.1.0"
 pytest-sugar = "^0.9.7"
 pytest-asyncio = "0.23.4"
-aerich = "^0.7.2"
 mypy = "^1.8.0"
 
 [tool.poetry.group.types.dependencies]
