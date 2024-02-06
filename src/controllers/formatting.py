@@ -96,7 +96,7 @@ def create_game_details_block_from_db(game_details: Game):
         },
         {
             "type": "section",
-            "text": {"type": "mrkdwn", "text": f"Turn: {game_details.turn} | {game_details.time_left}"},
+            "text": {"type": "mrkdwn", "text": f"Turn: {game_details.turn}"},
         },
         {
             "type": "section",
