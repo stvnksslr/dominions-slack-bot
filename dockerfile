@@ -13,14 +13,12 @@ COPY pyproject.toml poetry.lock migrations /src/
 
 RUN pip install "poetry==$POETRY_VERSION"
 RUN poetry install --only main
-CMD ["python", "-m", "src.main"]
 
-# FROM python:3.12-slim-bookworm AS app
-#
-# COPY --from=build /src/ ./
-#
-# ENV VIRTUAL_ENV=/.venv
-# ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-#
-# CMD sleep 100000
-# # CMD ["python", "-m", "src.main"]
+FROM python:3.12-slim-bookworm AS app
+
+COPY --from=build /src/ ./
+
+ENV VIRTUAL_ENV=/.venv
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+CMD ["python", "-m", "src.main"]
