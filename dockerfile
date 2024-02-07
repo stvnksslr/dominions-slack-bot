@@ -9,7 +9,7 @@ ENV PIP_DISABLE_PIP_VERSION_CHECK=on \
 WORKDIR /src
 
 COPY ./src /src/src/
-COPY pyproject.toml poetry.lock /src/
+COPY pyproject.toml poetry.lock migrations /src/
 
 RUN pip install "poetry==$POETRY_VERSION"
 RUN poetry install --only main
