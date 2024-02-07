@@ -1,4 +1,4 @@
-FROM python:3.12-slim-bookworm AS build
+FROM python:3.12-bookworm AS build
 
 ENV PIP_DISABLE_PIP_VERSION_CHECK=on \
     POETRY_VIRTUALENVS_CREATE=true \
