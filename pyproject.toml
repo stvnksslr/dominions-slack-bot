@@ -37,8 +37,10 @@ src_folder = "./."
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
+
 [tool.ruff]
 line-length = 120
+fix = true
 lint.ignore = [
     "B008", # function-call-in-default-argument (B008)
     "S101", # Use of `assert` detected
@@ -93,23 +95,6 @@ exclude = [
     ".venv",
 ]
 
-[tool.black]
-line-length = 120
-target-version = ['py38']
-include = '\.pyi?$'
-exclude = '''
-(
-  /(
-      \.eggs         # exclude a few common directories in the
-    | \.git          # root of the project
-    | \.hg
-    | \.mypy_cache
-    | \.tox
-    | \.venv
-    | _build
-    | buck-out
-    | build
-    | dist
-  )
-)
-'''
+[tool.ruff.format]
+docstring-code-format = true
+docstring-code-line-length = 120
