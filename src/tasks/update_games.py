@@ -31,17 +31,17 @@ async def update_games_wrapper():
 
         game_details = await fetch_lobby_details(game.name)
 
-        logger.info("updating")
-        logger.info(f"turn {game_details.turn}")
-        logger.info(f"turn {game_details.time_left}")
+        logger.info("updating", f"fetched turn {game_details.turn}")
 
         for player in game_details.player_status:
-            logger.info(f"updating player {player.name}")
+            logger.debug(f"updating player {player.name}")
             await Player().filter(game=game, nation=player.name).update(turn_status=player.turn_status)
 
         if game.turn < int(game_details.turn):
             logger.info("new turn detected")
             await Game.filter(name=game.name).update(turn=game_details.turn, time_left=game_details.time_left)
             await send_turn_update()
+        else:
+            await Game.filter(name=game.name).update(time_left=game_details.time_left)
 
         logger.info("update complete")
