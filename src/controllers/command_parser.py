@@ -37,7 +37,7 @@ async def add_game(command_list: list):
     game_details = await fetch_lobby_details(game_name)
     for player in game_details.player_status:
         await Player().create(
-            nation=player.name, short_name=player.short_name(), turn_status=player.turn_status, game=current_game
+            nation=player.name.strip(), short_name=player.short_name(), turn_status=player.turn_status, game=current_game
         )
 
     return f"game {game_name} added"

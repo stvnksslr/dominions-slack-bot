@@ -7,4 +7,4 @@ class PlayerStatus(BaseModel):
     turn_emoji: str | None = None
 
     def short_name(self):
-        return self.name.split(",")[0].lower()
+        return self.name.split(",")[0].lower().strip()

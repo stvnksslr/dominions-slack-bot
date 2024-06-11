@@ -35,7 +35,7 @@ def create_nations_block(player_list) -> list:
 
         nation_section = {
             "type": "section",
-            "text": {"type": "mrkdwn", "text": f"{player.turn_emoji} - *{player.name}*"},
+            "text": {"type": "mrkdwn", "text": f"{player.turn_emoji} - *{player.name.strip()}*"},
         }
 
         player_blocks.append(nation_section)
