@@ -28,7 +28,7 @@ async def fetch_lobby_details(server_name: str) -> LobbyDetails:
     # the first line is always the server status so its skipped here
     for player in game_info[1:]:
         name, turn_status = player.find_all("td")[:2]
-        current_game.player_status.append(PlayerStatus(name=name.text, turn_status=turn_status.text))
+        current_game.player_status.append(PlayerStatus(name=name.text.strip(), turn_status=turn_status.text))
 
     return current_game
 
