@@ -34,8 +34,8 @@ async def update_games_wrapper():
         logger.info("updating", f"fetched turn {game_details.turn}")
 
         for player in game_details.player_status:
-            logger.debug(f"updating player {player.name.strip()}")
-            await Player().filter(game=game, nation=player.name.strip()).update(turn_status=player.turn_status)
+            logger.debug(f"updating player {player.name}")
+            await Player().filter(game=game, nation=player.name).update(turn_status=player.turn_status)
 
         if game.turn < int(game_details.turn):
             logger.info("new turn detected")
