@@ -6,9 +6,9 @@ authors = ["Steven Kessler <stvnksslr@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.11"
-slack-bolt = "^1.18.1"
+slack-bolt = "^1.19.0"
 uvloop = "^0.19.0"
-pydantic = "^2.7.0"
+pydantic = "^2.7.4"
 python-dotenv = "^1.0.1"
 beautifulsoup4 = "^4.12.3"
 aiohttp = { extras = ["speedups"], version = "^3.9.2" }
