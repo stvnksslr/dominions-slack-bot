@@ -111,8 +111,10 @@ async def invalid_command() -> str:
 
 
 async def command_parser_wrapper(command: str):
+    logger.info("test")
+
     if not command.strip():
-        return unknown_command()
+        return await unknown_command()
 
     command_list = split_string_into_words(command)
 
