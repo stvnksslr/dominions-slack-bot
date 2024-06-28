@@ -3,6 +3,7 @@ name = "dominions-slack-bot"
 version = "0.1.0"
 description = "A slack bot to help manage and update dominions 5 games"
 authors = ["Steven Kessler <stvnksslr@gmail.com>"]
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.11"
