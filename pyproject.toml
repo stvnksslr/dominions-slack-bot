@@ -47,7 +47,8 @@ omit = [
     '__init__.py',
     'tests/*',
     '*/tests/*',
-    '.venv/*'
+    '.venv/*',
+    '*/migrations/*'
 ]
 
 [tool.coverage.report]
