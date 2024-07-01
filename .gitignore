@@ -3,6 +3,7 @@
 .idea
 .vscode
 dsb.sqlite3
+.coverage
 
 **/*.pytest_cache
 **/*__pycache__
