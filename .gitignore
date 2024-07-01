@@ -4,6 +4,7 @@
 .vscode
 dsb.sqlite3
 .coverage
+htmlcov
 
 **/*.pytest_cache
 **/*__pycache__
