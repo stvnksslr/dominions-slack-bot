@@ -17,6 +17,7 @@ class GameDetailsFetchError(Exception):
 
 async def send_turn_update():
     formatted_response = await turn_command_wrapper()
+    # TODO: move to a generic config
     channel_id = "#grog_hole"
     try:
         await client.chat_postMessage(channel=channel_id, text="status", blocks=formatted_response)
