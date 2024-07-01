@@ -1,6 +1,6 @@
 from aiohttp import ClientSession
 from aiohttp.client_exceptions import ClientConnectorError
-from bs4 import BeautifulSoup as beautiful_soup  # noqa: N813
+from bs4 import BeautifulSoup as beautiful_soup
 from loguru import logger
 
 from src.controllers.formatting import create_game_details_block, create_nations_block
