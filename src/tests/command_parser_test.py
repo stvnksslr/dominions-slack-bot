@@ -25,6 +25,13 @@ async def test_should_return_unknown_command_when_empty_command_is_given():
 
 
 @pytest.mark.asyncio()
+async def test_should_return_unknown_command_when_whitespace_command_is_given():
+    command = " "
+    result = await command_parser_wrapper(command)
+    assert result == "command not recognised"
+
+
+@pytest.mark.asyncio()
 async def test_should_return_invalid_command_when_game_command_is_incomplete():
     command = "game add"
     result = await command_parser_wrapper(command)

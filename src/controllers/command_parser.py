@@ -15,6 +15,17 @@ def split_string_into_words(input_string) -> list:
     return input_string.split()
 
 
+async def unknown_command() -> str:
+    logger.info("unknown command")
+    return UNKNOWN_COMMAND
+
+
+async def invalid_command() -> str:
+    logger.info("unknown command")
+    return INVALID_COMMAND
+
+
+# TODO: this should provides some examples or help info
 async def help_command() -> str:
     return "this should return a dynamic string based on specific command"
 
@@ -98,16 +109,6 @@ async def player_command(command_list: list):
     except PlayerOrNationError as error:
         logger.error(f"player or nation not found {error}")
         return "player or nation not found"
-
-
-async def unknown_command() -> str:
-    logger.info("unknown command")
-    return UNKNOWN_COMMAND
-
-
-async def invalid_command() -> str:
-    logger.info("unknown command")
-    return INVALID_COMMAND
 
 
 async def command_parser_wrapper(command: str):
