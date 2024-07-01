@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 
 from src.controllers.formatting import (
@@ -8,6 +10,8 @@ from src.controllers.formatting import (
     get_emoji,
 )
 from src.models.app.lobby_details import LobbyDetails
+from src.models.app.player_status import PlayerStatus
+from src.models.db import Player
 
 
 def create_mock_player(turn_status, name):
@@ -239,3 +243,45 @@ def create_nations_block_from_db_handles_empty_player_list():
 def create_nations_block_from_db_handles_none_player_list():
     result = create_nations_block_from_db(None)
     assert result == []
+
+
+@patch("src.controllers.formatting.get_emoji")
+def test_create_nations_block_from_db_formats_player_list(mock_get_emoji):
+    mock_get_emoji.return_value = ":emoji:"
+    player_list = [
+        Player(turn_status="Turn played", player_name="Player1", short_name="P1"),
+        Player(turn_status="Turn unfinished", player_name=None, short_name="P2"),
+    ]
+    result = create_nations_block_from_db(player_list)
+    assert len(result) == 2
+    assert result[0]["text"]["text"] == ":emoji: - *P1*  - Player1"
+    assert result[1]["text"]["text"] == ":emoji: - *P2* "
+
+
+@patch("src.controllers.formatting.get_emoji")
+def test_create_nations_block_from_db_handles_empty_player_list(mock_get_emoji):
+    mock_get_emoji.return_value = ":emoji:"
+    player_list = []
+    result = create_nations_block_from_db(player_list)
+    assert len(result) == 0
+
+
+@patch("src.controllers.formatting.get_emoji")
+def test_create_nations_block_formats_player_list(mock_get_emoji):
+    mock_get_emoji.return_value = ":emoji:"
+    player_list = [
+        PlayerStatus(turn_status="Turn played", name="Player1"),
+        PlayerStatus(turn_status="Turn unfinished", name="Player2"),
+    ]
+    result = create_nations_block(player_list)
+    assert len(result) == 2
+    assert result[0]["text"]["text"] == ":emoji: - *Player1*"
+    assert result[1]["text"]["text"] == ":emoji: - *Player2*"
+
+
+@patch("src.controllers.formatting.get_emoji")
+def test_create_nations_block_handles_empty_player_list(mock_get_emoji):
+    mock_get_emoji.return_value = ":emoji:"
+    player_list = []
+    result = create_nations_block(player_list)
+    assert len(result) == 0
