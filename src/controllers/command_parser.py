@@ -85,7 +85,7 @@ async def game_command(command_list: list):
             return await remove_game(command_list)
         case "nickname":
             return await nickname_game()
-        case "_":
+        case _:
             return await unknown_command()
 
 
