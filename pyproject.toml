@@ -48,7 +48,8 @@ omit = [
     'tests/*',
     '*/tests/*',
     '.venv/*',
-    '*/migrations/*'
+    '*/migrations/*',
+    '*_test.py'
 ]
 
 [tool.coverage.report]
