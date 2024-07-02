@@ -9,7 +9,7 @@ from uvloop import install as uvloop_setup
 from src.controllers.command_parser import command_parser_wrapper
 from src.controllers.lobby_details import fetch_lobby_details, format_lobby_details
 from src.controllers.lobby_details_v2 import turn_command_wrapper
-from src.responses import grog_response_list, mad_reactions_list
+from src.responders import grog_response_list, mad_reactions_list
 from src.tasks.update_games import update_games_wrapper
 from src.utils.constants import SLACK_APP_TOKEN
 from src.utils.db_manager import init

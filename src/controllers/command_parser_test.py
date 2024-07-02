@@ -2,8 +2,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.controllers.command_parser import add_game, command_parser_wrapper, game_command, nickname_game
-from src.models.db import Game
+from src.controllers.command_parser import command_parser_wrapper, game_command, nickname_game
 
 
 @pytest.mark.asyncio()
