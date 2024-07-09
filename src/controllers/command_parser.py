@@ -80,11 +80,11 @@ async def nickname_game(command_list: list):
 async def game_command(command_list: list):
     match command_list[1]:
         case "add":
-            return await add_game(command_list)
+            return await add_game(command_list=command_list)
         case "remove":
-            return await remove_game(command_list)
+            return await remove_game(command_list=command_list)
         case "nickname":
-            return await nickname_game()
+            return await nickname_game(command_list=command_list)
         case _:
             return await unknown_command()
 

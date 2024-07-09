@@ -18,6 +18,6 @@ TORTOISE_ORM = {
 }
 
 
-async def init():
+async def init() -> None:
     logger.info("connecting to db.....")
     await Tortoise.init(db_url=DB_URI, modules={"models": ["src.models.db"]})

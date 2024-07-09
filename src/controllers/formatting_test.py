@@ -89,8 +89,10 @@ def create_nations_block_handles_none_player_list():
     assert result == []
 
 
-def create_mock_lobby_details(server_info):
-    return LobbyDetails(server_info=server_info)
+def create_mock_lobby_details(server_info) -> LobbyDetails:
+    return LobbyDetails(
+        server_info=server_info, turn="1", time_left="", player_status=[PlayerStatus(name="name", turn_status="")]
+    )
 
 
 def create_game_details_block_creates_correct_block_for_valid_server_info():
@@ -147,7 +149,7 @@ def create_game_details_block_handles_empty_server_info():
 
 def create_game_details_block_from_db_creates_correct_block():
     game = create_mock_game("Game1", 1, "1 day left")
-    result = create_game_details_block_from_db(game)
+    result = create_game_details_block_from_db(game)  # type: ignore
     expected = [
         {
             "type": "header",
@@ -180,7 +182,7 @@ def create_game_details_block_from_db_creates_correct_block():
 
 
 def create_game_details_block_from_db_handles_none_game():
-    result = create_game_details_block_from_db(None)
+    result = create_game_details_block_from_db(None)  # type: ignore
     expected = [
         {
             "type": "header",

@@ -1,3 +1,5 @@
+from typing import Any
+
 from aiohttp import ClientSession
 from aiohttp.client_exceptions import ClientConnectorError
 from bs4 import BeautifulSoup as beautiful_soup  # noqa: N813
@@ -13,10 +15,10 @@ async def fetch_lobby_details(server_name: str) -> LobbyDetails:
         formatted_url = f"http://ulm.illwinter.com/dom6/server/{server_name}.html"
 
         async with ClientSession() as session:
-            response = await session.get(formatted_url)
-            parsed_response = beautiful_soup(await response.text(), "html.parser")
+            response = await session.get(url=formatted_url)
+            parsed_response = beautiful_soup(markup=await response.text(), features="html.parser")
 
-        game_info = parsed_response.find_all("tr")
+        game_info = parsed_response.find_all(name="tr")
 
         server_info_split = game_info[0].text.split(",")
         turn = server_info_split[1].split()[1] if len(server_info_split) > 1 else None
@@ -25,8 +27,8 @@ async def fetch_lobby_details(server_name: str) -> LobbyDetails:
         current_game = LobbyDetails(
             server_info=game_info[0].text,
             player_status=[],
-            turn=turn,
-            time_left=time_left,
+            turn=str(object=turn) if turn is not None else "",
+            time_left=str(object=time_left) if time_left is not None else "",
         )
 
         # the first line is always the server status so its skipped here
@@ -41,8 +43,8 @@ async def fetch_lobby_details(server_name: str) -> LobbyDetails:
         raise
 
 
-def format_lobby_details(lobby_details: LobbyDetails):
-    nation_block = create_nations_block(lobby_details.player_status)
-    game_details_block = create_game_details_block(lobby_details)
+def format_lobby_details(lobby_details: LobbyDetails) -> list[Any]:
+    nation_block = create_nations_block(player_list=lobby_details.player_status)
+    game_details_block = create_game_details_block(lobby_details=lobby_details)
     formatted_response = game_details_block + nation_block
     return formatted_response

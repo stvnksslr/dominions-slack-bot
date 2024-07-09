@@ -15,7 +15,7 @@ class GameDetailsFetchError(Exception):
     pass
 
 
-async def send_turn_update():
+async def send_turn_update() -> None:
     formatted_response = await turn_command_wrapper()
     # TODO: move to a generic config
     channel_id = "#grog_hole"
@@ -25,12 +25,12 @@ async def send_turn_update():
         logger.error(e)
 
 
-async def update_games_wrapper():
+async def update_games_wrapper() -> None:
     game_list = await Game.filter(active=True).all()
     for game in game_list:
         logger.info(f"querying {game.name} from dominions server")
 
-        game_details = await fetch_lobby_details(game.name)
+        game_details = await fetch_lobby_details(server_name=game.name)
 
         logger.info("updating", f"fetched turn {game_details.turn}")
 

@@ -1,8 +1,12 @@
+from typing import Any, Literal
+
 from src.models.app.lobby_details import LobbyDetails
 from src.models.db import Game
 
 
-def get_emoji(turn_status):
+def get_emoji(
+    turn_status,
+) -> Literal[":white_check_mark:"] | Literal[":question:"] | Literal[":x:"] | Literal[":gungoose:"]:
     """
     This function takes a player's turn status as an argument and returns an emoji that corresponds to the status.
     The function uses Python's match statement to check the value of turn_status and return the appropriate emoji.
@@ -42,7 +46,7 @@ def create_nations_block(player_list) -> list:
     return player_blocks
 
 
-def create_game_details_block(lobby_details: LobbyDetails):
+def create_game_details_block(lobby_details: LobbyDetails) -> list[Any]:
     """
     Attempt to format general lobby details
 
@@ -71,7 +75,7 @@ def create_game_details_block(lobby_details: LobbyDetails):
     return formatted_msg
 
 
-def create_game_details_block_from_db(game_details: Game):
+def create_game_details_block_from_db(game_details: Game) -> list[Any]:
     """
     Attempt to format general lobby details
 
@@ -118,7 +122,7 @@ def create_nations_block_from_db(player_list) -> list:
     player_blocks = []
 
     for player in player_list:
-        player.turn_emoji = get_emoji(player.turn_status)
+        player.turn_emoji = get_emoji(turn_status=player.turn_status)
 
         player_nickname_string = ""
         player_nickname = player.player_name

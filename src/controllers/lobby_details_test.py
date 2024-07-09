@@ -12,7 +12,7 @@ class MockConnectionError(BaseException):
 
 @patch("aiohttp.ClientSession.get", new_callable=AsyncMock)
 @pytest.mark.asyncio()
-async def test_fetch_lobby_details_returns_lobby_details_on_success(mock_get):
+async def test_fetch_lobby_details_returns_lobby_details_on_success(mock_get) -> None:
     mock_get.return_value.text.return_value = (
         "<html><body><tr>Server Info, Turn 1 (1 day "
         "left)</tr><tr><td>Player1</td><td>Turn played</td></tr></body></html>"
@@ -29,19 +29,19 @@ async def test_fetch_lobby_details_returns_lobby_details_on_success(mock_get):
 
 @patch("aiohttp.ClientSession.get", new_callable=AsyncMock)
 @pytest.mark.asyncio()
-async def test_fetch_lobby_details_raises_exception_on_failure(mock_get):
+async def test_fetch_lobby_details_raises_exception_on_failure(mock_get) -> None:
     mock_get.side_effect = MockConnectionError()
-    with pytest.raises(MockConnectionError):
-        await fetch_lobby_details("server_name")
+    with pytest.raises(expected_exception=MockConnectionError):
+        await fetch_lobby_details(server_name="server_name")
 
 
 @patch("src.controllers.formatting.create_nations_block")
 @patch("src.controllers.formatting.create_game_details_block")
-def test_format_lobby_details_combines_blocks(mock_create_game_details_block, mock_create_nations_block):
+def test_format_lobby_details_combines_blocks(mock_create_game_details_block, mock_create_nations_block) -> None:
     mock_create_game_details_block.return_value = "game_details"
     mock_create_nations_block.return_value = "nations"
     lobby_details = LobbyDetails(server_info="info", player_status=[], turn="turn", time_left="time_left")
-    result = format_lobby_details(lobby_details)
+    result = format_lobby_details(lobby_details=lobby_details)
     expected_response = [
         {"text": {"text": "Dominions Times", "type": "plain_text"}, "type": "header"},
         {"type": "divider"},
