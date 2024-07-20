@@ -2,16 +2,13 @@
 
 ## Description
 
-Slack bot for managing multiplayer Dominions 5 games in a single or multiple slack servers
+Slack bot for managing multiplayer Dominions 6 games in a single or multiple slack servers
 
-## Commands
+### Setup
 
-`/check <port or shortname>`
+* `poetry install`
+* `poetry self add 'poethepoet[poetry_plugin]'`
 
-TODO:
+#### Run
 
-* add/delete/update game
-* alias game
-* track when a new turn starts
-* search dominions 5 inspector
-* support additional server providers ie other than snek.earth
+`poetry poe start`

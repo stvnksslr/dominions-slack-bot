@@ -5,6 +5,13 @@ description = "A slack bot to help manage and update dominions 5 games"
 authors = ["Steven Kessler <stvnksslr@gmail.com>"]
 package-mode = false
 
+[tool.poe.tasks]
+start = 'op run --env-file="./.op" -- python -m src.main'
+test = "pytest --cov"
+lint = "ruff check"
+format = "ruff format"
+code-quality = "poe lint && poe format"
+
 [tool.poetry.dependencies]
 python = "^3.11"
 slack-bolt = "^1.19.0"
@@ -13,11 +20,10 @@ pydantic = "^2.7.4"
 python-dotenv = "^1.0.1"
 beautifulsoup4 = "^4.12.3"
 aiohttp = { extras = ["speedups"], version = "^3.9.5" }
+aerich = "^0.7.2"
 tortoise-orm = { extras = ["accel", "asyncmy"], version = "^0.21.3" }
 loguru = "^0.7.2"
 cryptography = "^42.0.8"
-aerich = "^0.7.2"
-pyright = "^1.1.369"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.2"
@@ -26,6 +32,7 @@ pytest-sugar = "^1.0.0"
 pytest-asyncio = "0.23.7"
 pytest-clarity = "^1.0.1"
 pytest-random-order = "^1.1.1"
+poethepoet = "^0.27.0"
 
 [tool.poetry.group.code-quality.dependencies]
 ruff = "^0.5.0"
@@ -41,7 +48,7 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.pyright]
-ignore = ["src/tests"]
+ignore = ["**_test.py"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
