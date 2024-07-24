@@ -4,9 +4,7 @@ from src.models.app.lobby_details import LobbyDetails
 from src.models.db import Game
 
 
-def get_emoji(
-    turn_status,
-) -> Literal[":white_check_mark:"] | Literal[":question:"] | Literal[":x:"] | Literal[":gungoose:"]:
+def get_emoji(turn_status):
     """
     This function takes a player's turn status as an argument and returns an emoji that corresponds to the status.
     The function uses Python's match statement to check the value of turn_status and return the appropriate emoji.
@@ -19,6 +17,8 @@ def get_emoji(
             return ":white_check_mark:"
         case "Turn unfinished":
             return ":question:"
+        case "Eliminated":
+            return ":dom_rip:"
         case "-":
             return ":x:"
         case _:
