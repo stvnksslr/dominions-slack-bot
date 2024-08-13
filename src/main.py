@@ -14,7 +14,10 @@ from src.responders import grog_response_list, mad_reactions_list
 from src.tasks.update_games import update_games_wrapper
 from src.utils.constants import SLACK_APP_TOKEN
 from src.utils.db_manager import init
+from src.utils.log_manager import setup_logger
 from src.utils.slack_manager import app
+
+setup_logger()
 
 
 @app.message(keyword=compile(pattern="(?i)grog"))
