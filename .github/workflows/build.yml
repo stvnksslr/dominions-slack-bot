@@ -63,6 +63,11 @@ jobs:
       - name: Run linters
         run: poetry run ruff check .
       #----------------------------------------------
+      #              run type check
+      #----------------------------------------------
+      - name: Run type check
+        run: poetry run mypy src
+      #----------------------------------------------
       #              run test suite
       #----------------------------------------------
       - name: Run tests

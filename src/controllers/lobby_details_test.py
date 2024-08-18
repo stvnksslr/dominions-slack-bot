@@ -11,7 +11,7 @@ class MockConnectionError(BaseException):
 
 
 @patch("aiohttp.ClientSession.get", new_callable=AsyncMock)
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_fetch_lobby_details_returns_lobby_details_on_success(mock_get) -> None:
     mock_get.return_value.text.return_value = (
         "<html><body><tr>Server Info, Turn 1 (1 day "
@@ -28,7 +28,7 @@ async def test_fetch_lobby_details_returns_lobby_details_on_success(mock_get) ->
 
 
 @patch("aiohttp.ClientSession.get", new_callable=AsyncMock)
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_fetch_lobby_details_raises_exception_on_failure(mock_get) -> None:
     mock_get.side_effect = MockConnectionError()
     with pytest.raises(expected_exception=MockConnectionError):

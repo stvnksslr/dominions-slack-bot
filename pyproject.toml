@@ -32,11 +32,11 @@ pytest-sugar = "^1.0.0"
 pytest-asyncio = "0.23.7"
 pytest-clarity = "^1.0.1"
 pytest-random-order = "^1.1.1"
-poethepoet = "^0.27.0"
 
 [tool.poetry.group.code-quality.dependencies]
-ruff = "^0.5.0"
-pyright = "^1.1.369"
+ruff = "^0.6.1"
+mypy = "^1.11.1"
+pre-commit = "^3.8.0"
 
 [tool.aerich]
 tortoise_orm = "src.utils.db_manager.TORTOISE_ORM"
