@@ -1,4 +1,0 @@
-SLACK_APP_TOKEN="op://kube/handsome-slack/SLACK_APP_TOKEN"
-SLACK_BOT_TOKEN="op://kube/handsome-slack/SLACK_BOT_TOKEN"
-DB_URI="op://kube/handsome-slack/GROG_DB"
-
