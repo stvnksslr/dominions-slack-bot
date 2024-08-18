@@ -1,5 +1,5 @@
 # file: .github/workflows/build.yaml
-name: build
+name: Build
 
 on:
   pull_request:
@@ -32,7 +32,7 @@ jobs:
       #  -----  install & configure poetry  -----
       #----------------------------------------------
       - name: Install Poetry
-        uses: snok/install-poetry@v1.3.4
+        uses: snok/install-poetry@v1.4.1
         with:
           version: ${{ env.POETRY_VERSION }}
           virtualenvs-create: true

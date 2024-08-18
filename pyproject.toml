@@ -5,16 +5,9 @@ description = "A slack bot to help manage and update dominions 5 games"
 authors = ["Steven Kessler <stvnksslr@gmail.com>"]
 package-mode = false
 
-[tool.poe.tasks]
-start = 'op run --env-file="./.op" -- python -m src.main'
-test = "pytest --cov"
-lint = "ruff check"
-format = "ruff format"
-code-quality = "poe lint && poe format"
-
 [tool.poetry.dependencies]
 python = "^3.11"
-slack-bolt = "^1.19.0"
+slack-bolt = "^1.20.0"
 uvloop = "^0.19.0"
 pydantic = "^2.7.4"
 python-dotenv = "^1.0.1"
@@ -37,7 +30,6 @@ pytest-random-order = "^1.1.1"
 ruff = "^0.6.1"
 mypy = "^1.11.1"
 pre-commit = "^3.8.0"
-
 
 [tool.poetry.group.types.dependencies]
 types-beautifulsoup4 = "^4.12.0.20240511"
