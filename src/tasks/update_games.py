@@ -17,7 +17,6 @@ class GameDetailsFetchError(Exception):
 
 async def send_turn_update() -> None:
     formatted_response = await turn_command_wrapper()
-    # TODO: move to a generic config
     channel_id = "#grog_hole"
     try:
         await client.chat_postMessage(channel=channel_id, text="status", blocks=formatted_response)
@@ -40,13 +39,22 @@ async def update_games_wrapper() -> None:
 
         for player in game_details.player_status:
             logger.debug(f"updating player {player.name}")
-            await Player().filter(game=game, nation=player.name).update(turn_status=player.turn_status)
+            # Find or create the player
+            db_player, created = await Player.get_or_create(
+                game=game,
+                nation=player.name,
+                defaults={"short_name": player.name.split(",")[0], "turn_status": player.turn_status},
+            )
+            if not created:
+                # Update existing player
+                db_player.turn_status = player.turn_status
+                await db_player.save()
 
         if game.turn < int(game_details.turn):
             logger.info("new turn detected")
-            await Game.filter(name=game.name).update(turn=game_details.turn, time_left=game_details.time_left)
+            await Game.filter(id=game.id).update(turn=game_details.turn, time_left=game_details.time_left)
             await send_turn_update()
         else:
-            await Game.filter(name=game.name).update(time_left=game_details.time_left)
+            await Game.filter(id=game.id).update(time_left=game_details.time_left)
 
         logger.info("update complete")
