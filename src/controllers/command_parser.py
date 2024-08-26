@@ -59,7 +59,8 @@ async def help_command() -> str:
         Example: `/dom game list`
 
         5. */dom game primary [game_name]*
-        Set a game as the primary game.
+        Set a game as the primary game, that will be tracked automatically
+        and returned from /turn
         Example: `/dom game primary Handsomeboiz_MA`
 
         6. */dom player [game_name] [nation] [player_name]*
