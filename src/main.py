@@ -77,6 +77,11 @@ async def fetch_server_status(ack, say, command) -> None:
     command_context = command["text"]
 
     game_details = await fetch_lobby_details(server_name=command_context)
+    if game_details is None:
+        await ack()
+        await say("Failed to fetch game details")
+        return
+
     formatted_response = format_lobby_details(lobby_details=game_details)
 
     await ack()

@@ -1,8 +1,8 @@
-from typing import Any
+from typing import Optional
 
+import bs4
 from aiohttp import ClientSession
-from aiohttp.client_exceptions import ClientConnectorError
-from bs4 import BeautifulSoup as beautiful_soup  # noqa: N813
+from bs4 import BeautifulSoup
 from loguru import logger
 
 from src.controllers.formatting import create_game_details_block, create_nations_block
@@ -10,41 +10,53 @@ from src.models.app.lobby_details import LobbyDetails
 from src.models.app.player_status import PlayerStatus
 
 
-async def fetch_lobby_details(server_name: str) -> LobbyDetails:
-    try:
-        formatted_url = f"http://ulm.illwinter.com/dom6/server/{server_name}.html"
-
-        async with ClientSession() as session:
-            response = await session.get(url=formatted_url)
-            parsed_response = beautiful_soup(markup=await response.text(), features="html.parser")
-
-        game_info = parsed_response.find_all(name="tr")
-
-        server_info_split = game_info[0].text.split(",")
-        turn = server_info_split[1].split()[1] if len(server_info_split) > 1 else None
-        time_left = server_info_split[1].split("(")[1].strip()[:-1] if len(server_info_split) > 1 else None
-
-        current_game = LobbyDetails(
-            server_info=game_info[0].text,
-            player_status=[],
-            turn=str(object=turn) if turn is not None else "",
-            time_left=str(object=time_left) if time_left is not None else "",
-        )
-
-        # the first line is always the server status so its skipped here
-        for player in game_info[1:]:
-            name, turn_status = player.find_all("td")[:2]
-            current_game.player_status.append(PlayerStatus(name=name.text.strip(), turn_status=turn_status.text))
-
-        return current_game
-
-    except ClientConnectorError as e:
-        logger.error(f"An error occurred: {e}")
-        raise
+def format_url(server_name: str) -> str:
+    return f"http://ulm.illwinter.com/dom6/server/{server_name}.html"
 
 
-def format_lobby_details(lobby_details: LobbyDetails) -> list[Any]:
-    nation_block = create_nations_block(player_list=lobby_details.player_status)
-    game_details_block = create_game_details_block(lobby_details=lobby_details)
-    formatted_response = game_details_block + nation_block
-    return formatted_response
+async def fetch_lobby_details(server_name: str) -> Optional[LobbyDetails]:
+    formatted_url = format_url(server_name)
+    async with ClientSession() as session, session.get(url=formatted_url) as response:
+        html_content = await response.text()
+
+    soup = BeautifulSoup(html_content, "html.parser")
+    first_row = soup.find("tr")
+
+    if not isinstance(first_row, bs4.Tag):
+        logger.error(f"Failed to find table row in HTML content for server {server_name}")
+        return None
+
+    server_info = first_row.text.strip().lower()
+    turn_parts = server_info.split("turn")
+    if len(turn_parts) < 2:
+        logger.error(f"Failed to extract turn information for server {server_name}")
+        return None
+
+    turn = turn_parts[1].split()[0]
+
+    time_left: Optional[str] = None
+    if "(" in server_info and ")" in server_info:
+        time_left = server_info.split("(")[1].split(")")[0]
+
+    player_status_list = []
+    for row in soup.find_all("tr")[1:]:
+        columns = row.find_all("td")
+        if len(columns) >= 2:
+            player_status_list.append(PlayerStatus(name=columns[0].text.strip(), turn_status=columns[1].text.strip()))
+
+    return LobbyDetails(
+        server_info=server_info,
+        player_status=player_status_list,
+        turn=turn,
+        time_left=time_left,
+    )
+
+
+def format_lobby_details(lobby_details: LobbyDetails) -> list[dict]:
+    game_details_block = create_game_details_block(lobby_details)
+    nations_block = create_nations_block(lobby_details.player_status)
+
+    return [
+        *game_details_block,
+        *nations_block,
+    ]

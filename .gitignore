@@ -1,5 +1,6 @@
 .venv
 .env
+.op
 .idea
 .vscode
 dsb.sqlite3
