@@ -43,15 +43,19 @@ async def help_command() -> str:
         Set a nickname for a game.
         Example: `/dom game nickname Handsomeboiz_MA HB_MA`
 
-        4. */dom player [game_name] [nation] [player_name]*
+        4. */dom game list*
+        List all active games in the database.
+        Example: `/dom game list`
+
+        5. */dom player [game_name] [nation] [player_name]*
         Associate a player name with a nation in a specific game.
         Example: `/dom player Handsomeboiz_MA arcosophale stebe`
 
-        5. */check [game_name]*
+        6. */check [game_name]*
         Fetch the current status of a game, including player statuses and turn timer.
         Example: `/check Handsomeboiz_MA`
 
-        6. */turn*
+        7. */turn*
         Display the current turn status for all active games.
 
         *Additional Features:*
@@ -118,6 +122,8 @@ async def game_command(command_list: list):
             return await remove_game(command_list=command_list)
         case "nickname":
             return await nickname_game(command_list=command_list)
+        case "list":
+            return await list_games()
         case _:
             return await unknown_command()
 
@@ -170,7 +176,7 @@ async def command_parser_wrapper(command: str):
 async def help_command_wrapper(command: str) -> str:
     match command:
         case "game":
-            return "Game command usage: `/dom game [add|remove|nickname] [game_name] [nickname (for nickname command)]`"
+            return "Game command usage: `/dom game [add|remove|nickname|list] [game_name] [nickname (for nickname command)]`"
         case "player":
             return "Player command usage: `/dom player [game_name] [nation] [player_name]`"
         case "check":
@@ -179,3 +185,16 @@ async def help_command_wrapper(command: str) -> str:
             return "Turn command usage: `/turn` (no additional arguments needed)"
         case _:
             return f"No specific help available for '{command}'. Please use `/dom help` for general help."
+
+
+async def list_games():
+    active_games = await Game.filter(active=True).all()
+    if not active_games:
+        return "No active games found."
+
+    game_list = "Active games:\n"
+    for game in active_games:
+        nickname = f" (Nickname: {game.nickname})" if game.nickname else ""
+        game_list += f"- {game.name}{nickname}\n"
+
+    return game_list
