@@ -25,9 +25,42 @@ async def invalid_command() -> str:
     return INVALID_COMMAND
 
 
-# TODO: this should provides some examples or help info
 async def help_command() -> str:
-    return "this should return a dynamic string based on specific command"
+    help_text = """
+        *Dominions 5 Slack Bot Help*
+
+        Here are the available commands:
+
+        1. */dom game add [game_name]*
+        Add a new game to the bot's tracking.
+        Example: `/dom game add Handsomeboiz_MA`
+
+        2. */dom game remove [game_name]*
+        Remove a game from the bot's tracking.
+        Example: `/dom game remove Handsomeboiz_MA`
+
+        3. */dom game nickname [game_name] [nickname]*
+        Set a nickname for a game.
+        Example: `/dom game nickname Handsomeboiz_MA HB_MA`
+
+        4. */dom player [game_name] [nation] [player_name]*
+        Associate a player name with a nation in a specific game.
+        Example: `/dom player Handsomeboiz_MA arcosophale stebe`
+
+        5. */check [game_name]*
+        Fetch the current status of a game, including player statuses and turn timer.
+        Example: `/check Handsomeboiz_MA`
+
+        6. */turn*
+        Display the current turn status for all active games.
+
+        *Additional Features:*
+        - The bot will respond with a random "grog" message when the word "grog" is mentioned.
+        - The bot will react with a random "mad" emoji when the word "mad" is used.
+
+        For more detailed information on a specific command, use: `/dom help [command]`
+        """
+    return help_text
 
 
 async def add_game(command_list: list):
@@ -112,7 +145,7 @@ async def player_command(command_list: list):
 
 
 async def command_parser_wrapper(command: str):
-    logger.info("test")
+    logger.info("Parsing command")
 
     if not command.strip():
         return await unknown_command()
@@ -121,6 +154,10 @@ async def command_parser_wrapper(command: str):
 
     match command_list[0]:
         case "help":
+            if len(command_list) > 1:
+                # Handle specific help requests
+                specific_command = command_list[1]
+                return await help_command_wrapper(specific_command)
             return await help_command()
         case "game":
             return await game_command(command_list)
@@ -128,3 +165,17 @@ async def command_parser_wrapper(command: str):
             return await player_command(command_list)
         case _:
             return await unknown_command()
+
+
+async def help_command_wrapper(command: str) -> str:
+    match command:
+        case "game":
+            return "Game command usage: `/dom game [add|remove|nickname] [game_name] [nickname (for nickname command)]`"
+        case "player":
+            return "Player command usage: `/dom player [game_name] [nation] [player_name]`"
+        case "check":
+            return "Check command usage: `/check [game_name]`"
+        case "turn":
+            return "Turn command usage: `/turn` (no additional arguments needed)"
+        case _:
+            return f"No specific help available for '{command}'. Please use `/dom help` for general help."
