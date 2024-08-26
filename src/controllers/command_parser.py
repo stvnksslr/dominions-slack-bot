@@ -27,7 +27,7 @@ async def invalid_command() -> str:
 
 async def help_command() -> str:
     help_text = """
-        *Dominions 5 Slack Bot Help*
+        *Dominions 6 Slack Bot Help*
 
         Here are the available commands:
 
@@ -57,10 +57,6 @@ async def help_command() -> str:
 
         7. */turn*
         Display the current turn status for all active games.
-
-        *Additional Features:*
-        - The bot will respond with a random "grog" message when the word "grog" is mentioned.
-        - The bot will react with a random "mad" emoji when the word "mad" is used.
 
         For more detailed information on a specific command, use: `/dom help [command]`
         """
