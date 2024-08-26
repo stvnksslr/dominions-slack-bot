@@ -32,6 +32,10 @@ async def update_games_wrapper() -> None:
 
         game_details = await fetch_lobby_details(server_name=game.name)
 
+        if game_details is None:
+            logger.error(f"Failed to fetch game details for {game.name}")
+            continue
+
         logger.info("updating", f"fetched turn {game_details.turn}")
 
         for player in game_details.player_status:

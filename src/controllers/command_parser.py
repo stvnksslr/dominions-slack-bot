@@ -64,7 +64,6 @@ async def help_command() -> str:
 
 
 async def add_game(command_list: list):
-    # /dom game add Handsomeboiz_MA
     if len(command_list) < 3:
         return INVALID_COMMAND
 
@@ -79,6 +78,10 @@ async def add_game(command_list: list):
     logger.info(current_game.id)
 
     game_details = await fetch_lobby_details(game_name)
+    if game_details is None:
+        logger.error(f"Failed to fetch game details for {game_name}")
+        return f"Failed to fetch game details for {game_name}"
+
     for player in game_details.player_status:
         await Player().create(
             nation=player.name.strip(),
@@ -125,7 +128,6 @@ async def game_command(command_list: list):
 
 
 async def player_command(command_list: list):
-    # ./dom player Handsomeboiz_MA arcosophale stebe
     if len(command_list) < 4:
         return INVALID_COMMAND
 
@@ -147,7 +149,7 @@ async def player_command(command_list: list):
 
 
 async def command_parser_wrapper(command: str):
-    logger.info("Parsing command")
+    logger.info(f"Parsing command, {command}")
 
     if not command.strip():
         return await unknown_command()
