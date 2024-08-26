@@ -10,12 +10,12 @@ async def test_should_return_help_command_output_when_help_command_is_given() ->
     command = "help"
     result = await command_parser_wrapper(command=command)
     assert "Dominions 6 Slack Bot Help" in result
-    assert "/dom game add [game_name]" in result
-    assert "/dom game remove [game_name]" in result
-    assert "/dom game nickname [game_name] [nickname]" in result
-    assert "/dom player [game_name] [nation] [player_name]" in result
-    assert "/check [game_name]" in result
-    assert "/turn" in result
+    assert "Here are the available commands:" in result
+    assert "Game:" in result
+    assert "Player:" in result
+    assert "Check:" in result
+    assert "Turn:" in result
+    assert "For more detailed information on a specific command, use: `/dom help [command]`" in result
 
 
 @pytest.mark.asyncio

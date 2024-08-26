@@ -1,5 +1,5 @@
 from enum import Enum, auto
-from typing import Any, Callable, Coroutine, List, TypedDict
+from typing import Any, Callable, Coroutine, Dict, List, TypedDict
 
 from loguru import logger
 from tortoise.exceptions import DBConnectionError, IntegrityError, OperationalError
@@ -9,6 +9,32 @@ from src.models.db import Game, Player
 
 UNKNOWN_COMMAND = "command not recognised"
 INVALID_COMMAND = "command is invalid please check spelling or help command and try again"
+
+# Define help texts for each command
+HELP_TEXTS: Dict[str, str] = {
+    "game": """
+    Game command usage: `/dom game [subcommand] [arguments]`
+    Subcommands:
+    - add [game_name]: Add a new game to track
+    - remove [game_name]: Remove a game from tracking
+    - nickname [game_name] [nickname]: Set a nickname for a game
+    - list: List all active games
+    - primary [game_name]: Set a game as the primary game
+    - status [game_name] [active|inactive]: Set a game's active status
+    """,
+    "player": """
+    Player command usage: `/dom player [game_name] [nation] [player_name]`
+    Associate a player name with a nation in a specific game.
+    """,
+    "check": """
+    Check command usage: `/check [game_name]`
+    Fetch the current status of a game, including player statuses and turn timer.
+    """,
+    "turn": """
+    Turn command usage: `/turn`
+    Display the current turn status for all active games.
+    """,
+}
 
 
 class PlayerOrNationError(Exception):
@@ -35,53 +61,6 @@ async def unknown_command() -> str:
 async def invalid_command() -> str:
     logger.info("unknown command")
     return INVALID_COMMAND
-
-
-async def help_command() -> str:
-    help_text = """
-        *Dominions 6 Slack Bot Help*
-
-        Here are the available commands:
-
-        1. */dom game add [game_name]*
-        Add a new game to the bot's tracking.
-        Example: `/dom game add Handsomeboiz_MA`
-
-        2. */dom game remove [game_name]*
-        Remove a game from the bot's tracking.
-        Example: `/dom game remove Handsomeboiz_MA`
-
-        3. */dom game nickname [game_name] [nickname]*
-        Set a nickname for a game.
-        Example: `/dom game nickname Handsomeboiz_MA HB_MA`
-
-        4. */dom game list*
-        List all active games in the database.
-        Example: `/dom game list`
-
-        5. */dom game primary [game_name]*
-        Set a game as the primary game, that will be tracked automatically
-        and returned from /turn
-        Example: `/dom game primary Handsomeboiz_MA`
-
-        6. */dom game status [game_name] [active|inactive]*
-        Set a game's active status.
-        Example: `/dom game status Handsomeboiz_MA active`
-
-        7. */dom player [game_name] [nation] [player_name]*
-        Associate a player name with a nation in a specific game.
-        Example: `/dom player Handsomeboiz_MA arcosophale stebe`
-
-        8. */check [game_name]*
-        Fetch the current status of a game, including player statuses and turn timer.
-        Example: `/check Handsomeboiz_MA`
-
-        9. */turn*
-        Display the current turn status for all active games.
-
-        For more detailed information on a specific command, use: `/dom help [command]`
-        """
-    return help_text
 
 
 async def add_game(command_list: List[str]) -> str:
@@ -240,6 +219,19 @@ async def player_command(command_list: List[str]) -> str:
             return "An unexpected error occurred"
 
 
+async def help_command() -> str:
+    help_text = """
+    *Dominions 6 Slack Bot Help*
+
+    Here are the available commands:
+    """
+    for command, text in HELP_TEXTS.items():
+        help_text += f"\n{command.capitalize()}:\n{text.strip()}\n"
+
+    help_text += "\nFor more detailed information on a specific command, use: `/dom help [command]`"
+    return help_text
+
+
 async def command_parser_wrapper(command: str) -> str:
     logger.info(f"Parsing command, {command}")
 
@@ -264,17 +256,9 @@ async def command_parser_wrapper(command: str) -> str:
 
 
 async def help_command_wrapper(command: str) -> str:
-    match command:
-        case "game":
-            return "Game command usage: `/dom game [add|remove|nickname|list|primary|status] [game_name] [nickname/status]`"
-        case "player":
-            return "Player command usage: `/dom player [game_name] [nation] [player_name]`"
-        case "check":
-            return "Check command usage: `/check [game_name]`"
-        case "turn":
-            return "Turn command usage: `/turn` (no additional arguments needed)"
-        case _:
-            return f"No specific help available for '{command}'. Please use `/dom help` for general help."
+    if command in HELP_TEXTS:
+        return f"{command.capitalize()} command help:\n{HELP_TEXTS[command].strip()}"
+    return f"No specific help available for '{command}'. Please use `/dom help` for general help."
 
 
 async def list_games() -> str:
