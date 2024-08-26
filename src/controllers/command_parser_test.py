@@ -9,7 +9,14 @@ from src.controllers.command_parser import command_parser_wrapper, game_command,
 async def test_should_return_help_command_output_when_help_command_is_given() -> None:
     command = "help"
     result = await command_parser_wrapper(command=command)
-    assert result == "this should return a dynamic string based on specific command"
+    assert "Dominions 5 Slack Bot Help" in result
+    assert "/dom game add [game_name]" in result
+    assert "/dom game remove [game_name]" in result
+    assert "/dom game nickname [game_name] [nickname]" in result
+    assert "/dom player [game_name] [nation] [player_name]" in result
+    assert "/check [game_name]" in result
+    assert "/turn" in result
+    assert "Additional Features:" in result
 
 
 @pytest.mark.asyncio
