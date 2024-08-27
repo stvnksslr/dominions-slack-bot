@@ -75,6 +75,8 @@ async def fetch_lobby_details_from_db(game_name: str) -> Optional[LobbyDetails]:
         PlayerStatus(name=player.short_name, turn_status=player.turn_status) for player in game.players
     ]
 
+    logger.info(f"retrieved status for: {len(player_status_list)} players")
+
     return LobbyDetails(
         server_info=f"{game.name} - Turn {game.turn}",
         player_status=player_status_list,
@@ -96,7 +98,7 @@ def format_lobby_details(lobby_details: LobbyDetails) -> list[dict]:
 async def get_lobby_details(game_name: str, use_db: bool = False) -> list[Any]:
     fetch_function = fetch_lobby_details_from_db if use_db else fetch_lobby_details_from_web
     lobby_details = await fetch_function(game_name)
-    logger.debug(f"fetching details for {game_name}")
+    logger.info(f"fetching details for {game_name}")
 
     if lobby_details is None:
         logger.error(f"Failed to fetch lobby details for game '{game_name}'")
