@@ -299,7 +299,7 @@ async def help_command_wrapper(command: str) -> str:
 
 
 async def list_games() -> str:
-    all_games = await Game.all()
+    all_games = await Game.filter(active=True)
     if not all_games:
         return "No games found."
 
