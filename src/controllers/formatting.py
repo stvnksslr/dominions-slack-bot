@@ -1,7 +1,6 @@
-from typing import Any, Literal
+from typing import Any
 
 from src.models.app.lobby_details import LobbyDetails
-from src.models.db import Game
 
 
 def get_emoji(turn_status):
@@ -75,9 +74,9 @@ def create_game_details_block(lobby_details: LobbyDetails) -> list[Any]:
     return formatted_msg
 
 
-def create_game_details_block_from_db(game_details: Game) -> list[Any]:
+def create_game_details_block_from_db(lobby_details: LobbyDetails) -> list[Any]:
     """
-    Attempt to format general lobby details
+    Attempt to format general lobby details from database
 
     :return:
     """
@@ -96,15 +95,15 @@ def create_game_details_block_from_db(game_details: Game) -> list[Any]:
         },
         {
             "type": "section",
-            "text": {"type": "mrkdwn", "text": f"{game_details.name}"},
+            "text": {"type": "mrkdwn", "text": f"{lobby_details.server_info}"},
         },
         {
             "type": "section",
-            "text": {"type": "mrkdwn", "text": f"Turn: {game_details.turn}"},
+            "text": {"type": "mrkdwn", "text": f"Turn: {lobby_details.turn}"},
         },
         {
             "type": "section",
-            "text": {"type": "mrkdwn", "text": f"{game_details.time_left}"},
+            "text": {"type": "mrkdwn", "text": f"{lobby_details.time_left}"},
         },
         {"type": "divider"},
         {"type": "section", "text": {"type": "mrkdwn", "text": "*Player List*"}},
@@ -113,28 +112,18 @@ def create_game_details_block_from_db(game_details: Game) -> list[Any]:
 
 
 def create_nations_block_from_db(player_list) -> list:
-    """
-    Attempts to create and format a slack modal
-
-    :param player_list:
-    :return:
-    """
     player_blocks = []
 
     for player in player_list:
         player.turn_emoji = get_emoji(turn_status=player.turn_status)
 
-        player_nickname_string = ""
-        player_nickname = player.player_name
-
-        if player_nickname:
-            player_nickname_string = f" - {player_nickname}"
+        player_name_string = f" - {player.nickname}" if player.nickname else ""
 
         nation_section = {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": f"{player.turn_emoji} - *{player.short_name}* {player_nickname_string}",
+                "text": f"{player.turn_emoji} - *{player.name}*{player_name_string}",
             },
         }
 

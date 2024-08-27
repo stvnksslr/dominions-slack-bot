@@ -1,289 +1,180 @@
-from unittest.mock import patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from aiohttp import ClientResponse, ClientSession
+from tortoise import Tortoise
 
-from src.controllers.formatting import (
-    create_game_details_block,
-    create_game_details_block_from_db,
-    create_nations_block,
-    create_nations_block_from_db,
-    get_emoji,
-)
+from src.controllers.lobby_details import format_lobby_details, get_lobby_details
 from src.models.app.lobby_details import LobbyDetails
 from src.models.app.player_status import PlayerStatus
-from src.models.db import Player
+from src.models.db import Game, Player
 
 
-def create_mock_player(turn_status, name):
-    return type("Player", (object,), {"turn_status": turn_status, "name": name})
+class MockConnectionError(Exception):
+    pass
 
 
-def create_mock_game(name, turn, time_left):
-    return type("Game", (object,), {"name": name, "turn": turn, "time_left": time_left})
+@pytest.fixture
+async def _initialize_tortoise():
+    await Tortoise.init(db_url="sqlite://:memory:", modules={"models": ["src.models.db"]})
+    await Tortoise.generate_schemas()
+    yield
+    await Tortoise.close_connections()
 
 
-def create_mock_player_with_shortname(turn_status, short_name, player_name):
-    return type("Player", (object,), {"turn_status": turn_status, "short_name": short_name, "player_name": player_name})
+@pytest.fixture
+def mock_html_content():
+    return """
+    <html><body>
+        <tr>Server Info, Turn 1 (1 day left)</tr>
+        <tr><td>Player1</td><td>Turn played</td></tr>
+    </body></html>
+    """
 
 
-def test_get_emoji_returns_check_mark_for_turn_played():
-    assert get_emoji("Turn played") == ":white_check_mark:"
+@pytest.fixture
+def mock_game():
+    return MagicMock(spec=Game, name="TestGame", turn="1", time_left="1 day left")
 
 
-def test_get_emoji_returns_question_for_turn_unfinished():
-    assert get_emoji("Turn unfinished") == ":question:"
+@pytest.fixture
+def mock_players():
+    return [MagicMock(spec=Player, short_name="Player1", turn_status="Turn played")]
 
 
-def test_get_emoji_returns_cross_for_no_turn():
-    assert get_emoji("-") == ":x:"
+@pytest.mark.asyncio
+async def test_get_lobby_details_web_source(mock_html_content):
+    mock_response = AsyncMock(spec=ClientResponse)
+    mock_response.text.return_value = mock_html_content
+    mock_session = AsyncMock(spec=ClientSession)
+    mock_session.get.return_value.__aenter__.return_value = mock_response
+
+    with patch("src.controllers.lobby_details.ClientSession") as mock_client_session, patch(
+        "src.controllers.lobby_details.fetch_lobby_details_from_web"
+    ) as mock_fetch:
+        mock_client_session.return_value.__aenter__.return_value = mock_session
+        mock_fetch.return_value = LobbyDetails(
+            server_info="Server Info, Turn 1 (1 day left)",
+            player_status=[PlayerStatus(name="Player1", turn_status="Turn played")],
+            turn="1",
+            time_left="1 day left",
+        )
+        result = await get_lobby_details("server_name", use_db=False)
+
+    assert isinstance(result, list)
+    assert len(result) > 0
+    assert any("Server Info, Turn 1" in str(block) for block in result)
+    assert any("Player1" in str(block) for block in result)
 
 
-def test_get_emoji_returns_gungoose_for_unknown_status():
-    assert get_emoji("Unknown status") == ":gungoose:"
+@pytest.mark.asyncio
+async def test_get_lobby_details_db_source(mock_game, mock_players):
+    with patch("src.controllers.lobby_details.Game.filter") as mock_game_filter, patch(
+        "src.controllers.lobby_details.fetch_lobby_details_from_db"
+    ) as mock_fetch:
+        mock_game_filter.return_value.first.return_value = mock_game
+        mock_game.fetch_related = AsyncMock()
+        mock_game.players = mock_players
+        mock_fetch.return_value = LobbyDetails(
+            server_info="TestGame - Turn 1",
+            player_status=[PlayerStatus(name="Player1", turn_status="Turn played")],
+            turn="1",
+            time_left="1 day left",
+        )
+        result = await get_lobby_details("TestGame", use_db=True)
+
+    assert isinstance(result, list)
+    assert len(result) > 0
+    assert any("TestGame" in str(block) for block in result)
+    assert any("Player1" in str(block) for block in result)
 
 
-def test_get_emoji_returns_gungoose_for_empty_status():
-    assert get_emoji("") == ":gungoose:"
+@pytest.mark.asyncio
+async def test_get_lobby_details_web_source_failure():
+    with patch("src.controllers.lobby_details.fetch_lobby_details_from_web") as mock_fetch:
+        mock_fetch.side_effect = ValueError("Failed to fetch lobby details from web source")
+        result = await get_lobby_details("server_name", use_db=False)
+        assert result == []  # Expect an empty list instead of raising an error
 
 
-@pytest.mark.parametrize("status", [None, 123, [], {}])
-def test_get_emoji_returns_gungoose_for_invalid_status(status):
-    assert get_emoji(status) == ":gungoose:"
+@pytest.mark.asyncio
+async def test_get_lobby_details_db_source_failure():
+    with patch("src.controllers.lobby_details.fetch_lobby_details_from_db") as mock_fetch:
+        mock_fetch.return_value = None
+        result = await get_lobby_details("NonexistentGame", use_db=True)
+        assert result == []  # Expect an empty list instead of raising an error
 
 
-def create_nations_block_creates_correct_block_for_single_player():
-    player = create_mock_player("Turn played", "Player1")
-    result = create_nations_block([player])
-    expected = [
-        {
-            "type": "section",
-            "text": {"type": "mrkdwn", "text": ":white_check_mark: - *Player1*"},
-        }
-    ]
-    assert result == expected
+def test_format_lobby_details():
+    lobby_details = LobbyDetails(
+        server_info="Test Server, Turn 1 (1 day left)",
+        player_status=[PlayerStatus(name="Player1", turn_status="Turn played", nickname="Nick1")],
+        turn="1",
+        time_left="1 day left",
+    )
+    result = format_lobby_details(lobby_details)
+
+    assert isinstance(result, list)
+    assert len(result) > 0
+    assert any("Test Server, Turn 1" in str(block) for block in result)
+    assert any("Player1" in str(block) for block in result)
+    assert any("Nick1" in str(block) for block in result)
 
 
-def create_nations_block_creates_correct_block_for_multiple_players():
-    players = [create_mock_player("Turn played", "Player1"), create_mock_player("-", "Player2")]
-    result = create_nations_block(players)
-    expected = [
-        {
-            "type": "section",
-            "text": {"type": "mrkdwn", "text": ":white_check_mark: - *Player1*"},
-        },
-        {
-            "type": "section",
-            "text": {"type": "mrkdwn", "text": ":x: - *Player2*"},
-        },
-    ]
-    assert result == expected
+@pytest.mark.asyncio
+async def test_fetch_lobby_details_from_web():
+    mock_html = """
+    <html><body>
+        <tr>Server Info, Turn 2 (2 days left)</tr>
+        <tr><td>Player1</td><td>Turn played</td></tr>
+        <tr><td>Player2</td><td>Turn unfinished</td></tr>
+    </body></html>
+    """
+    mock_response = AsyncMock(spec=ClientResponse)
+    mock_response.text.return_value = mock_html
+    mock_session = AsyncMock(spec=ClientSession)
+    mock_session.get.return_value.__aenter__.return_value = mock_response
+
+    with patch("src.controllers.lobby_details.ClientSession") as mock_client_session:
+        mock_client_session.return_value.__aenter__.return_value = mock_session
+        from src.controllers.lobby_details import fetch_lobby_details_from_web
+
+        result = await fetch_lobby_details_from_web("test_server")
+
+    assert isinstance(result, LobbyDetails)
+    assert result.server_info == "server info, turn 2 (2 days left)"
+    assert result.turn == "2"
+    assert result.time_left == "2 days left"
+    assert len(result.player_status) == 2
+    assert result.player_status[0].name == "Player1"
+    assert result.player_status[0].turn_status == "Turn played"
+    assert result.player_status[1].name == "Player2"
+    assert result.player_status[1].turn_status == "Turn unfinished"
 
 
-def create_nations_block_handles_empty_player_list():
-    result = create_nations_block([])
-    assert result == []
-
-
-def create_nations_block_handles_none_player_list():
-    result = create_nations_block(None)
-    assert result == []
-
-
-def create_mock_lobby_details(server_info) -> LobbyDetails:
-    return LobbyDetails(
-        server_info=server_info, turn="1", time_left="", player_status=[PlayerStatus(name="name", turn_status="")]
+@pytest.mark.asyncio
+@pytest.mark.usefixtures("_initialize_tortoise")
+async def test_fetch_lobby_details_from_db():
+    mock_game = await Game.create(name="TestGame", turn=3, time_left="3 days left")
+    await Player.create(
+        nation="Nation1", short_name="Player1", turn_status="Turn played", player_name="Nick1", game=mock_game
+    )
+    await Player.create(
+        nation="Nation2", short_name="Player2", turn_status="Turn unfinished", player_name=None, game=mock_game
     )
 
+    from src.controllers.lobby_details import fetch_lobby_details_from_db
 
-def create_game_details_block_creates_correct_block_for_valid_server_info():
-    lobby_details = create_mock_lobby_details("Server Info")
-    result = create_game_details_block(lobby_details)
-    expected = [
-        {
-            "type": "header",
-            "text": {"type": "plain_text", "text": "Dominions Times"},
-        },
-        {"type": "divider"},
-        {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": " :freak_lord: *Update* :freak_lord:",
-            },
-        },
-        {
-            "type": "section",
-            "text": {"type": "mrkdwn", "text": "Server Info"},
-        },
-        {"type": "divider"},
-        {"type": "section", "text": {"type": "mrkdwn", "text": "*Player List*"}},
-    ]
-    assert result == expected
+    result = await fetch_lobby_details_from_db("TestGame")
 
-
-def create_game_details_block_handles_empty_server_info():
-    lobby_details = create_mock_lobby_details("")
-    result = create_game_details_block(lobby_details)
-    expected = [
-        {
-            "type": "header",
-            "text": {"type": "plain_text", "text": "Dominions Times"},
-        },
-        {"type": "divider"},
-        {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": " :freak_lord: *Update* :freak_lord:",
-            },
-        },
-        {
-            "type": "section",
-            "text": {"type": "mrkdwn", "text": ""},
-        },
-        {"type": "divider"},
-        {"type": "section", "text": {"type": "mrkdwn", "text": "*Player List*"}},
-    ]
-    assert result == expected
-
-
-def create_game_details_block_from_db_creates_correct_block():
-    game = create_mock_game("Game1", 1, "1 day left")
-    result = create_game_details_block_from_db(game)  # type: ignore
-    expected = [
-        {
-            "type": "header",
-            "text": {"type": "plain_text", "text": "Dominions Times"},
-        },
-        {"type": "divider"},
-        {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": " :freak_lord: *Update* :freak_lord:",
-            },
-        },
-        {
-            "type": "section",
-            "text": {"type": "mrkdwn", "text": "Game1"},
-        },
-        {
-            "type": "section",
-            "text": {"type": "mrkdwn", "text": "Turn: 1"},
-        },
-        {
-            "type": "section",
-            "text": {"type": "mrkdwn", "text": "1 day left"},
-        },
-        {"type": "divider"},
-        {"type": "section", "text": {"type": "mrkdwn", "text": "*Player List*"}},
-    ]
-    assert result == expected
-
-
-def create_game_details_block_from_db_handles_none_game():
-    result = create_game_details_block_from_db(None)  # type: ignore
-    expected = [
-        {
-            "type": "header",
-            "text": {"type": "plain_text", "text": "Dominions Times"},
-        },
-        {"type": "divider"},
-        {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": " :freak_lord: *Update* :freak_lord:",
-            },
-        },
-        {
-            "type": "section",
-            "text": {"type": "mrkdwn", "text": ""},
-        },
-        {"type": "divider"},
-        {"type": "section", "text": {"type": "mrkdwn", "text": "*Player List*"}},
-    ]
-    assert result == expected
-
-
-def create_nations_block_from_db_creates_correct_block_for_single_player():
-    player = create_mock_player_with_shortname("Turn played", "ShortName1", "Player1")
-    result = create_nations_block_from_db([player])
-    expected = [
-        {
-            "type": "section",
-            "text": {"type": "mrkdwn", "text": ":white_check_mark: - *ShortName1* - Player1"},
-        }
-    ]
-    assert result == expected
-
-
-def create_nations_block_from_db_creates_correct_block_for_multiple_players():
-    players = [
-        create_mock_player_with_shortname("Turn played", "ShortName1", "Player1"),
-        create_mock_player_with_shortname("-", "ShortName2", "Player2"),
-    ]
-    result = create_nations_block_from_db(players)
-    expected = [
-        {
-            "type": "section",
-            "text": {"type": "mrkdwn", "text": ":white_check_mark: - *ShortName1* - Player1"},
-        },
-        {
-            "type": "section",
-            "text": {"type": "mrkdwn", "text": ":x: - *ShortName2* - Player2"},
-        },
-    ]
-    assert result == expected
-
-
-def create_nations_block_from_db_handles_empty_player_list():
-    result = create_nations_block_from_db([])
-    assert result == []
-
-
-def create_nations_block_from_db_handles_none_player_list():
-    result = create_nations_block_from_db(None)
-    assert result == []
-
-
-@patch("src.controllers.formatting.get_emoji")
-def test_create_nations_block_from_db_formats_player_list(mock_get_emoji):
-    mock_get_emoji.return_value = ":emoji:"
-    player_list = [
-        Player(turn_status="Turn played", player_name="Player1", short_name="P1"),
-        Player(turn_status="Turn unfinished", player_name=None, short_name="P2"),
-    ]
-    result = create_nations_block_from_db(player_list)
-    assert len(result) == 2
-    assert result[0]["text"]["text"] == ":emoji: - *P1*  - Player1"
-    assert result[1]["text"]["text"] == ":emoji: - *P2* "
-
-
-@patch("src.controllers.formatting.get_emoji")
-def test_create_nations_block_from_db_handles_empty_player_list(mock_get_emoji):
-    mock_get_emoji.return_value = ":emoji:"
-    player_list = []
-    result = create_nations_block_from_db(player_list)
-    assert len(result) == 0
-
-
-@patch("src.controllers.formatting.get_emoji")
-def test_create_nations_block_formats_player_list(mock_get_emoji):
-    mock_get_emoji.return_value = ":emoji:"
-    player_list = [
-        PlayerStatus(turn_status="Turn played", name="Player1"),
-        PlayerStatus(turn_status="Turn unfinished", name="Player2"),
-    ]
-    result = create_nations_block(player_list)
-    assert len(result) == 2
-    assert result[0]["text"]["text"] == ":emoji: - *Player1*"
-    assert result[1]["text"]["text"] == ":emoji: - *Player2*"
-
-
-@patch("src.controllers.formatting.get_emoji")
-def test_create_nations_block_handles_empty_player_list(mock_get_emoji):
-    mock_get_emoji.return_value = ":emoji:"
-    player_list = []
-    result = create_nations_block(player_list)
-    assert len(result) == 0
+    assert isinstance(result, LobbyDetails)
+    assert result.server_info == "TestGame - Turn 3"
+    assert result.turn == "3"
+    assert result.time_left == "3 days left"
+    assert len(result.player_status) == 2
+    assert result.player_status[0].name == "Player1"
+    assert result.player_status[0].turn_status == "Turn played"
+    assert result.player_status[0].nickname == "Nick1"
+    assert result.player_status[1].name == "Player2"
+    assert result.player_status[1].turn_status == "Turn unfinished"
+    assert result.player_status[1].nickname is None

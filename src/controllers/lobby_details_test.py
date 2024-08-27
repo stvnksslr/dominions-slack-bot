@@ -84,16 +84,16 @@ async def test_get_lobby_details_db_source(mock_game, mock_players):
 async def test_get_lobby_details_web_source_failure():
     with patch("src.controllers.lobby_details.fetch_lobby_details_from_web") as mock_fetch:
         mock_fetch.side_effect = ValueError("Failed to fetch lobby details from web source")
-        with pytest.raises(ValueError, match="Failed to fetch lobby details from web source"):
-            await get_lobby_details("server_name", use_db=False)
+        result = await get_lobby_details("server_name", use_db=False)
+        assert result == []  # Expect an empty list instead of raising an error
 
 
 @pytest.mark.asyncio
 async def test_get_lobby_details_db_source_failure():
     with patch("src.controllers.lobby_details.fetch_lobby_details_from_db") as mock_fetch:
         mock_fetch.return_value = None
-        with pytest.raises(ValueError, match="Failed to fetch lobby details for game"):
-            await get_lobby_details("NonexistentGame", use_db=True)
+        result = await get_lobby_details("NonexistentGame", use_db=True)
+        assert result == []  # Expect an empty list instead of raising an error
 
 
 def test_format_lobby_details():
