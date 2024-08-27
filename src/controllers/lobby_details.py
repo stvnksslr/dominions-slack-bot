@@ -9,6 +9,7 @@ from src.controllers.formatting import create_game_details_block, create_nations
 from src.models.app.lobby_details import LobbyDetails
 from src.models.app.player_status import PlayerStatus
 from src.models.db import Game
+from src.models.db.players import Player
 
 
 def format_url(server_name: str) -> str:
@@ -69,13 +70,13 @@ async def fetch_lobby_details_from_db(game_name: str) -> Optional[LobbyDetails]:
         logger.error(f"Game '{game_name}' not found in the database")
         return None
 
-    await game.fetch_related("players")
+    player_list = await Player().filter(game=game)
 
     player_status_list = [
-        PlayerStatus(name=player.short_name, turn_status=player.turn_status) for player in game.players
+        PlayerStatus(name=player.short_name, turn_status=player.turn_status) for player in player_list
     ]
 
-    logger.info(f"retrieved status for: {len(player_status_list)} players")
+    logger.debug(f"retrieved status for: {len(player_status_list)} players")
 
     return LobbyDetails(
         server_info=f"{game.name} - Turn {game.turn}",
