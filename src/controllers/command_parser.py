@@ -205,6 +205,9 @@ async def update_player(game: Game, nation_name: str, player_name: str) -> Playe
     except (IntegrityError, DBConnectionError, OperationalError) as e:
         logger.error(f"Database error updating player: {e}")
         return PlayerCommandResult.DATABASE_ERROR
+    except Exception as e:
+        logger.error(f"Unexpected error updating player: {e}")
+        return PlayerCommandResult.DATABASE_ERROR
 
 
 async def player_command(command_list: List[str]) -> str:
