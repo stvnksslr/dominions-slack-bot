@@ -4,7 +4,8 @@ from typing import Any, Callable, Coroutine, Dict, List, TypedDict
 from loguru import logger
 from tortoise.exceptions import DBConnectionError, IntegrityError, OperationalError
 
-from src.controllers.lobby_details import fetch_lobby_details
+from src.controllers.lobby_details import get_lobby_details
+from src.models.app.player_status import GameDetails
 from src.models.db import Game, Player
 
 UNKNOWN_COMMAND = "command not recognised"
@@ -59,7 +60,7 @@ async def unknown_command() -> str:
 
 
 async def invalid_command() -> str:
-    logger.info("unknown command")
+    logger.info("invalid command")
     return INVALID_COMMAND
 
 
@@ -74,21 +75,31 @@ async def add_game(command_list: List[str]) -> str:
         logger.debug("game already exists")
         return f"game {game_name} already exists"
 
-    current_game = await Game.create(name=game_name)
-    logger.info(current_game.id)
-
-    game_details = await fetch_lobby_details(game_name)
-    if game_details is None:
-        logger.error(f"Failed to fetch game details for {game_name}")
+    try:
+        game_details: List[Any] = await get_lobby_details(game_name, use_db=False)
+    except ValueError as e:
+        logger.error(f"Failed to fetch game details for {game_name}: {e!s}")
         return f"Failed to fetch game details for {game_name}"
 
-    for player in game_details.player_status:
-        new_player = await Player.create(
-            nation=player.name.strip(),
-            short_name=player.short_name(),
-            turn_status=player.turn_status,
-        )
-        await current_game.players.add(new_player)
+    # Assuming the list structure is [turn, time_left, [player_status]]
+    if len(game_details) != 3:
+        return f"Unexpected game details format for {game_name}"
+
+    turn, time_left, player_status = game_details
+
+    current_game = await Game.create(name=game_name, turn=turn, time_left=time_left)
+    logger.info(f"Created game with ID: {current_game.id}")
+
+    for player in player_status:
+        if isinstance(player, dict) and "name" in player and "turn_status" in player:
+            new_player = await Player.create(
+                nation=player["name"].strip(),
+                short_name=player["name"].split(",")[0].strip(),
+                turn_status=player["turn_status"],
+            )
+            await current_game.players.add(new_player)
+        else:
+            logger.warning(f"Unexpected player data format: {player}")
 
     return f"game {game_name} added"
 
@@ -185,7 +196,7 @@ async def set_primary(command_list: List[str]) -> str:
 
 async def update_player(game: Game, nation_name: str, player_name: str) -> PlayerCommandResult:
     try:
-        player = await Player.filter(games=game, short_name=nation_name).first()
+        player = await Player.filter(game=game, short_name=nation_name).first()
         if player:
             player.player_name = player_name
             await player.save()
@@ -232,27 +243,53 @@ async def help_command() -> str:
     return help_text
 
 
+async def handle_help_command(command_list: List[str]) -> str:
+    if len(command_list) > 1:
+        specific_command = command_list[1]
+        return await help_command_wrapper(specific_command)
+    return await help_command()
+
+
+async def handle_check_command(command_list: List[str]) -> str:
+    if len(command_list) > 1:
+        game_name = command_list[1]
+        try:
+            game_details = await get_lobby_details(game_name, use_db=True)
+            return str(game_details)  # You might want to format this better
+        except ValueError as e:
+            return str(e)
+    return INVALID_COMMAND
+
+
+async def handle_turn_command() -> str:
+    try:
+        turn_status = await get_lobby_details(game_name="", use_db=True)  # Assuming this gets the primary game
+        return str(turn_status)  # You might want to format this better
+    except ValueError as e:
+        return str(e)
+
+
 async def command_parser_wrapper(command: str) -> str:
-    logger.info(f"Parsing command, {command}")
+    logger.info(f"Parsing command: {command}")
 
     if not command.strip():
         return await unknown_command()
 
     command_list = split_string_into_words(command)
 
-    match command_list[0]:
-        case "help":
-            if len(command_list) > 1:
-                # Handle specific help requests
-                specific_command = command_list[1]
-                return await help_command_wrapper(specific_command)
-            return await help_command()
-        case "game":
-            return await game_command(command_list)
-        case "player":
-            return await player_command(command_list)
-        case _:
-            return await unknown_command()
+    command_handlers = {
+        "help": handle_help_command,
+        "game": game_command,
+        "player": player_command,
+        "check": handle_check_command,
+        "turn": lambda _: handle_turn_command(),
+    }
+
+    handler = command_handlers.get(command_list[0])
+    if handler:
+        return await handler(command_list)
+
+    return await unknown_command()
 
 
 async def help_command_wrapper(command: str) -> str:

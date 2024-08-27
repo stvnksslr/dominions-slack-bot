@@ -8,8 +8,7 @@ from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
 from uvloop import install as uvloop_setup
 
 from src.controllers.command_parser import command_parser_wrapper
-from src.controllers.lobby_details import fetch_lobby_details, format_lobby_details
-from src.controllers.lobby_details_v2 import turn_command_wrapper
+from src.controllers.lobby_details import get_lobby_details, turn_command_wrapper
 from src.responders import grog_response_list, mad_reactions_list
 from src.tasks.update_games import update_games_wrapper
 from src.utils.constants import SLACK_APP_TOKEN
@@ -76,16 +75,13 @@ async def fetch_server_status(ack, say, command) -> None:
     """
     command_context = command["text"]
 
-    game_details = await fetch_lobby_details(server_name=command_context)
-    if game_details is None:
+    try:
+        formatted_response = await get_lobby_details(game_name=command_context)
         await ack()
-        await say("Failed to fetch game details")
-        return
-
-    formatted_response = format_lobby_details(lobby_details=game_details)
-
-    await ack()
-    await say(blocks=formatted_response, text="status")
+        await say(blocks=formatted_response, text="status")
+    except ValueError as e:
+        await ack()
+        await say(f"Error: {e!s}")
 
 
 @app.command(command="/turn")
