@@ -4,6 +4,13 @@ import pytest
 from aiohttp import ClientResponse, ClientSession
 from tortoise import Tortoise
 
+from src.controllers.formatting import (
+    create_game_details_block,
+    create_game_details_block_from_db,
+    create_nations_block,
+    create_nations_block_from_db,
+    get_emoji,
+)
 from src.controllers.lobby_details import format_lobby_details, get_lobby_details
 from src.models.app.lobby_details import LobbyDetails
 from src.models.app.player_status import PlayerStatus
@@ -178,3 +185,59 @@ async def test_fetch_lobby_details_from_db():
     assert result.player_status[1].name == "Player2"
     assert result.player_status[1].turn_status == "Turn unfinished"
     assert result.player_status[1].nickname is None
+
+
+def test_get_emoji():
+    assert get_emoji("Turn played") == ":white_check_mark:"
+    assert get_emoji("Turn unfinished") == ":question:"
+    assert get_emoji("Eliminated") == ":dom_rip:"
+    assert get_emoji("-") == ":x:"
+    assert get_emoji("Unknown status") == ":gungoose:"
+
+
+def test_create_nations_block():
+    player_list = [
+        PlayerStatus(name="Player1", turn_status="Turn played"),
+        PlayerStatus(name="Player2", turn_status="Turn unfinished"),
+    ]
+    result = create_nations_block(player_list)
+    assert len(result) == 2
+    assert result[0]["type"] == "section"
+    assert ":white_check_mark: - *Player1*" in result[0]["text"]["text"]
+    assert ":question: - *Player2*" in result[1]["text"]["text"]
+
+
+def test_create_game_details_block():
+    lobby_details = LobbyDetails(
+        server_info="Test Server, Turn 1 (1 day left)", player_status=[], turn="1", time_left="1 day left"
+    )
+    result = create_game_details_block(lobby_details)
+    assert len(result) == 6
+    assert result[0]["type"] == "header"
+    assert result[0]["text"]["text"] == "Dominions Times"
+    assert "Test Server, Turn 1 (1 day left)" in result[3]["text"]["text"]
+
+
+def test_create_game_details_block_from_db():
+    lobby_details = LobbyDetails(
+        server_info="Test Server - Turn 2", player_status=[], turn="2", time_left="2 days left"
+    )
+    result = create_game_details_block_from_db(lobby_details)
+    assert len(result) == 8
+    assert result[0]["type"] == "header"
+    assert result[0]["text"]["text"] == "Dominions Times"
+    assert "Test Server - Turn 2" in result[3]["text"]["text"]
+    assert "Turn: 2" in result[4]["text"]["text"]
+    assert "2 days left" in result[5]["text"]["text"]
+
+
+def test_create_nations_block_from_db():
+    player_list = [
+        PlayerStatus(name="Player1", turn_status="Turn played", nickname="Nick1"),
+        PlayerStatus(name="Player2", turn_status="Turn unfinished", nickname=None),
+    ]
+    result = create_nations_block_from_db(player_list)
+    assert len(result) == 2
+    assert result[0]["type"] == "section"
+    assert ":white_check_mark: - *Player1* - Nick1" in result[0]["text"]["text"]
+    assert ":question: - *Player2*" in result[1]["text"]["text"]
