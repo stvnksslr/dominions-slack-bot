@@ -7,6 +7,7 @@ from loguru import logger
 from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
 from uvloop import install as uvloop_setup
 
+from src.commands.command_factory import CommandFactory
 from src.controllers.command_parser import command_parser_wrapper
 from src.controllers.lobby_details import get_lobby_details, turn_command_wrapper
 from src.responders import grog_response_list, mad_reactions_list
@@ -73,22 +74,18 @@ async def fetch_server_status(ack, say, command) -> None:
     :param command:
     :return:
     """
-    command_context = command["text"]
-
-    try:
-        formatted_response = await get_lobby_details(game_name=command_context)
-        await ack()
-        await say(blocks=formatted_response, text="status")
-    except ValueError as e:
-        await ack()
-        await say(f"Error: {e!s}")
+    command_obj = CommandFactory.get_command("check")
+    response = await command_obj.execute(command["text"])
+    await ack()
+    await say(response)
 
 
 @app.command(command="/turn")
 async def turn_command(ack, say) -> None:
-    formatted_response = await turn_command_wrapper()
+    command_obj = CommandFactory.get_command("turn")
+    response = await command_obj.execute()
     await ack()
-    await say(blocks=formatted_response, text="status")
+    await say(response)
 
 
 @app.event(event="message")
