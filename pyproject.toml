@@ -52,10 +52,7 @@ addopts = "-vv --random-order"
 
 [tool.coverage.run]
 omit = [
-    '*/.local/*',
     '__init__.py',
-    'tests/*',
-    '*/tests/*',
     '.venv/*',
     '*/migrations/*',
     '*_test.py'
