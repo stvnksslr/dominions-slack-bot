@@ -1,7 +1,7 @@
 from asyncio import create_task, run, sleep
 from random import choice
 from re import compile
-from typing import NoReturn
+from typing import Any, Dict, List, NoReturn, Union
 
 from loguru import logger
 from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
@@ -18,6 +18,16 @@ from src.utils.log_manager import setup_logger
 from src.utils.slack_manager import app
 
 setup_logger()
+
+
+async def send_response(say, response: Union[str, List[Dict[str, Any]]]) -> None:
+    """
+    Helper function to send a response, handling both string and Slack block formats.
+    """
+    if isinstance(response, str):
+        await say(text=response)
+    else:
+        await say(blocks=response, text="Response (see blocks for formatted content)")
 
 
 @app.message(keyword=compile(pattern="(?i)grog"))
@@ -59,9 +69,8 @@ async def handle_add_game_command(ack, say, command) -> None:
     :return: None
     """
     response = await command_parser_wrapper(command=command["text"])
-
     await ack()
-    await say(response)
+    await send_response(say, response)
 
 
 @app.command(command="/check")
@@ -77,7 +86,7 @@ async def fetch_server_status(ack, say, command) -> None:
     command_obj = CommandFactory.get_command("check")
     response = await command_obj.execute(command["text"])
     await ack()
-    await say(response)
+    await send_response(say, response)
 
 
 @app.command(command="/turn")
@@ -85,7 +94,7 @@ async def turn_command(ack, say) -> None:
     command_obj = CommandFactory.get_command("turn")
     response = await command_obj.execute()
     await ack()
-    await say(response)
+    await send_response(say, response)
 
 
 @app.event(event="message")
