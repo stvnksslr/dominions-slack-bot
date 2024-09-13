@@ -76,17 +76,31 @@ async def handle_add_game_command(ack, say, command) -> None:
 @app.command(command="/check")
 async def fetch_server_status(ack, say, command) -> None:
     """
-    Requests all player status's and the current servers turn timer
+    Requests all player status's and the current server's turn timer
 
-    :param ack:
-    :param say:
-    :param command:
-    :return:
+    :param ack: Function to acknowledge the command
+    :param say: Function to send a message back to the user
+    :param command: Dictionary containing the command text
+    :return: None
     """
-    command_obj = CommandFactory.get_command("check")
-    response = await command_obj.execute(command["text"])
     await ack()
-    await send_response(say, response)
+    game_name = command["text"].strip()
+
+    if not game_name:
+        await say("Please provide a game name. Usage: /check [game_name]")
+        return
+
+    try:
+        lobby_details = await get_lobby_details(game_name, use_db=True)
+
+        if not lobby_details:
+            await say(f"No details found for game '{game_name}'. Make sure the game exists and is active.")
+            return
+
+        await say(blocks=lobby_details, text=f"Status for game: {game_name}")
+    except Exception as e:
+        logger.error(f"Error fetching game details: {e}")
+        await say(f"An error occurred while fetching game details: {e!s}")
 
 
 @app.command(command="/turn")
