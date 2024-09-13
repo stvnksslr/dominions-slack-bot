@@ -36,9 +36,6 @@ async def grog_responder(say) -> None:
     """
     when the word grog is mentioned in a channel the bot is present it
     will return one of several random responses
-
-    :param say:
-    :return:
     """
     random_grog = choice(seq=grog_response_list)
     await say(random_grog)
@@ -62,11 +59,6 @@ async def mad_reactor(message, client) -> None:
 async def handle_add_game_command(ack, say, command) -> None:
     """
     This function handles the '/dom' command in the Slack bot.
-
-    :param ack: function to acknowledge the command
-    :param say: function to send a message back to the user
-    :param command: dictionary containing the command text
-    :return: None
     """
     response = await command_parser_wrapper(command=command["text"])
     await ack()
@@ -86,12 +78,7 @@ async def handle_add_game_command(ack, say, command) -> None:
 @app.command(command="/check")
 async def fetch_server_status(ack, say, command) -> None:
     """
-    Requests all player status's and the current server's turn timer
-
-    :param ack: Function to acknowledge the command
-    :param say: Function to send a message back to the user
-    :param command: Dictionary containing the command text
-    :return: None
+    This function handles checking a game via the website instead of the db
     """
     await ack()
     game_name = command["text"].strip()
@@ -101,13 +88,9 @@ async def fetch_server_status(ack, say, command) -> None:
         return
 
     try:
-        lobby_details = await get_lobby_details(game_name, use_db=False)
-
-        if not lobby_details:
-            await say(f"No details found for game '{game_name}'. Make sure the game exists and is active.")
-            return
-
-        await say(blocks=lobby_details, text=f"Status for game: {game_name}")
+        command_obj = CommandFactory.get_command("check")
+        response = await command_obj.execute(game_name)
+        await send_response(say, response)
     except Exception as e:
         logger.error(f"Error fetching game details: {e}")
         await say(f"An error occurred while fetching game details: {e!s}")
