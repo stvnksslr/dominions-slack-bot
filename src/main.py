@@ -1,4 +1,5 @@
 from asyncio import create_task, run, sleep
+from json import JSONDecodeError, loads
 from random import choice
 from re import compile
 from typing import Any, Dict, List, NoReturn, Union
@@ -60,8 +61,7 @@ async def mad_reactor(message, client) -> None:
 @app.command(command="/dom")
 async def handle_add_game_command(ack, say, command) -> None:
     """
-    This function handles the '/dom' command in the Slack bot. It takes three parameters:
-    'ack', 'say', and 'command'.
+    This function handles the '/dom' command in the Slack bot.
 
     :param ack: function to acknowledge the command
     :param say: function to send a message back to the user
@@ -70,7 +70,17 @@ async def handle_add_game_command(ack, say, command) -> None:
     """
     response = await command_parser_wrapper(command=command["text"])
     await ack()
-    await send_response(say, response)
+
+    try:
+        # Attempt to parse the response as JSON
+        parsed_response = loads(response)
+        if isinstance(parsed_response, list):
+            await say(blocks=parsed_response, text="Response (see blocks for formatted content)")
+        else:
+            await say(text=response)
+    except JSONDecodeError:
+        # If it's not valid JSON, treat it as a plain string
+        await say(text=response)
 
 
 @app.command(command="/check")

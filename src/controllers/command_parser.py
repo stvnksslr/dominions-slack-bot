@@ -1,4 +1,5 @@
 from enum import Enum, auto
+from json import dumps
 from typing import Any, Callable, Coroutine, Dict, List, TypedDict
 
 from loguru import logger
@@ -22,11 +23,17 @@ async def command_parser_wrapper(command: str) -> str:
     try:
         if main_command == "game" and len(command_list) > 1:
             command_obj = CommandFactory.get_command(f"game {command_list[1]}")
-            return await command_obj.execute(*command_list[2:])
-        if main_command in ["player", "check", "turn", "help"]:
+            result = await command_obj.execute(*command_list[2:])
+        elif main_command in ["player", "check", "turn", "help"]:
             command_obj = CommandFactory.get_command(main_command)
-            return await command_obj.execute(*command_list[1:])
-        return "command not recognised"
+            result = await command_obj.execute(*command_list[1:])
+        else:
+            return "command not recognised"
+
+        if isinstance(result, str):
+            return result
+        return dumps(result)
+
     except ValueError as e:
         logger.error(f"Error parsing command: {e}")
         return "command not recognised"
