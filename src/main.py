@@ -101,7 +101,7 @@ async def fetch_server_status(ack, say, command) -> None:
         return
 
     try:
-        lobby_details = await get_lobby_details(game_name, use_db=True)
+        lobby_details = await get_lobby_details(game_name, use_db=False)
 
         if not lobby_details:
             await say(f"No details found for game '{game_name}'. Make sure the game exists and is active.")
