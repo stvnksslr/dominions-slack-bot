@@ -56,9 +56,10 @@ async def test_get_lobby_details_web_source(mock_html_content):
     mock_session = AsyncMock(spec=ClientSession)
     mock_session.get.return_value.__aenter__.return_value = mock_response
 
-    with patch("src.controllers.lobby_details.ClientSession") as mock_client_session, patch(
-        "src.controllers.lobby_details.fetch_lobby_details_from_web"
-    ) as mock_fetch:
+    with (
+        patch("src.controllers.lobby_details.ClientSession") as mock_client_session,
+        patch("src.controllers.lobby_details.fetch_lobby_details_from_web") as mock_fetch,
+    ):
         mock_client_session.return_value.__aenter__.return_value = mock_session
         mock_fetch.return_value = LobbyDetails(
             server_info="Server Info, Turn 1 (1 day left)",
@@ -76,9 +77,10 @@ async def test_get_lobby_details_web_source(mock_html_content):
 
 @pytest.mark.asyncio
 async def test_get_lobby_details_db_source(mock_game, mock_players):
-    with patch("src.controllers.lobby_details.Game.filter") as mock_game_filter, patch(
-        "src.controllers.lobby_details.fetch_lobby_details_from_db"
-    ) as mock_fetch:
+    with (
+        patch("src.controllers.lobby_details.Game.filter") as mock_game_filter,
+        patch("src.controllers.lobby_details.fetch_lobby_details_from_db") as mock_fetch,
+    ):
         mock_game_filter.return_value.first.return_value = mock_game
         mock_game.fetch_related = AsyncMock()
         mock_game.players = mock_players
