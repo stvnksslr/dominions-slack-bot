@@ -1,5 +1,3 @@
-from typing import List
-
 from pydantic.main import BaseModel
 
 
@@ -16,4 +14,4 @@ class PlayerStatus(BaseModel):
 class GameDetails(BaseModel):
     turn: int
     time_left: str
-    player_status: List[PlayerStatus]
+    player_status: list[PlayerStatus]

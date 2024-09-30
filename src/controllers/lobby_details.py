@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any
 
 import bs4
 from aiohttp import ClientError, ClientSession
@@ -20,7 +20,7 @@ def format_url(game_name: str) -> str:
     return f"http://ulm.illwinter.com/dom6/server/{game_name}.html"
 
 
-async def fetch_lobby_details_from_web(game_name: str) -> Optional[LobbyDetails]:
+async def fetch_lobby_details_from_web(game_name: str) -> LobbyDetails | None:
     formatted_url = format_url(game_name)
     try:
         async with ClientSession() as session, session.get(url=formatted_url) as response:
@@ -41,7 +41,7 @@ async def fetch_lobby_details_from_web(game_name: str) -> Optional[LobbyDetails]
 
         turn = turn_parts[1].split()[0]
 
-        time_left: Optional[str] = None
+        time_left: str | None = None
         if "(" in server_info and ")" in server_info:
             time_left = server_info.split("(")[1].split(")")[0]
 
@@ -68,7 +68,7 @@ async def fetch_lobby_details_from_web(game_name: str) -> Optional[LobbyDetails]
     raise ValueError(f"Failed to fetch lobby details from web source for game {game_name}")
 
 
-async def fetch_lobby_details_from_db(game_name: str) -> Optional[LobbyDetails]:
+async def fetch_lobby_details_from_db(game_name: str) -> LobbyDetails | None:
     game = await Game.filter(name=game_name).first()
     if game is None:
         logger.error(f"Game '{game_name}' not found in the database")

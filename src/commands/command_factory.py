@@ -1,4 +1,4 @@
-from typing import ClassVar, Dict, Type
+from typing import ClassVar
 
 from .base import Command
 from .check_commands import CheckGameStatusCommand
@@ -16,7 +16,7 @@ from .turn_commands import TurnStatusCommand
 
 
 class CommandFactory:
-    _commands: ClassVar[Dict[str, Type[Command]]] = {
+    _commands: ClassVar[dict[str, type[Command]]] = {
         "game add": AddGameCommand,
         "game remove": RemoveGameCommand,
         "game nickname": NicknameGameCommand,

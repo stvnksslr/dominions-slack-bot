@@ -2,7 +2,7 @@ from asyncio import create_task, run, sleep
 from json import JSONDecodeError, loads
 from random import choice
 from re import compile
-from typing import Any, Dict, List, NoReturn, Union
+from typing import Any, NoReturn
 
 from loguru import logger
 from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
@@ -10,7 +10,6 @@ from uvloop import install as uvloop_setup
 
 from src.commands.command_factory import CommandFactory
 from src.controllers.command_parser import command_parser_wrapper
-from src.controllers.lobby_details import get_lobby_details, turn_command_wrapper
 from src.responders import grog_response_list, mad_reactions_list
 from src.tasks.update_games import update_games_wrapper
 from src.utils.constants import SLACK_APP_TOKEN
@@ -21,7 +20,7 @@ from src.utils.slack_manager import app
 setup_logger()
 
 
-async def send_response(say, response: Union[str, List[Dict[str, Any]]]) -> None:
+async def send_response(say, response: str | list[dict[str, Any]]) -> None:
     """
     Helper function to send a response, handling both string and Slack block formats.
     """
