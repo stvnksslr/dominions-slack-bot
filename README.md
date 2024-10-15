@@ -9,9 +9,8 @@ Slack bot for managing multiplayer Dominions 6 games in a single or multiple sla
 
 ### Setup
 
-* `poetry install`
-* `poetry self add 'poethepoet[poetry_plugin]'`
+* `uv sync`
 
 #### Run
 
-`poetry poe start`
+`uv run src.main`
