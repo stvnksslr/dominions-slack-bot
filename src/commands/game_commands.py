@@ -21,17 +21,19 @@ class AddGameCommand(Command):
             if game_details is None:
                 return f"Failed to fetch game details for {game_name}"
 
+            # Create the game first
             current_game = await Game.create(name=game_name, turn=game_details.turn, time_left=game_details.time_left)
 
+            # Create players with the game reference
             for player in game_details.player_status:
-                new_player = await Player.create(
+                await Player.create(
                     nation=player.name.strip(),
                     short_name=player.name.split(",")[0].strip(),
                     turn_status=player.turn_status,
+                    game=current_game,  # Set the game reference directly
                 )
-                await current_game.players.add(new_player)
 
-            return f"game {game_name} added"
+            return f"game {game_name} added successfully with {len(game_details.player_status)} players"
         except Exception as e:
             return f"Error adding game: {e!s}"
 
