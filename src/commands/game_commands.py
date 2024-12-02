@@ -1,18 +1,23 @@
+from typing import TYPE_CHECKING, Literal
+
 from src.controllers.lobby_details import fetch_lobby_details_from_web
 from src.models.db import Game
 from src.models.db.players import Player
 
 from .base import Command
 
+if TYPE_CHECKING:
+    from src.models.app.lobby_details import LobbyDetails
+
 
 class AddGameCommand(Command):
     async def execute(self, game_name: str) -> str:
-        existing_game = await Game.filter(name=game_name, active=True).first()
+        existing_game: Game | None = await Game.filter(name=game_name, active=True).first()
         if existing_game:
             return f"game {game_name} already exists"
 
         try:
-            game_details = await fetch_lobby_details_from_web(game_name=game_name)
+            game_details: LobbyDetails | None = await fetch_lobby_details_from_web(game_name=game_name)
             if game_details is None:
                 return f"Failed to fetch game details for {game_name}"
 
@@ -45,15 +50,15 @@ class NicknameGameCommand(Command):
 
 class ListGamesCommand(Command):
     async def execute(self) -> str:
-        all_games = await Game.filter(active=True)
+        all_games: list[Game] = await Game.filter(active=True)
         if not all_games:
             return "No games found."
 
         game_list = "Games:\n"
         for game in all_games:
             nickname = f" (Nickname: {game.nickname})" if game.nickname else ""
-            primary = " [PRIMARY]" if game.primary_game else ""
-            status = "Active" if game.active else "Inactive"
+            primary: Literal[" [PRIMARY]"] | Literal[""] = " [PRIMARY]" if game.primary_game else ""
+            status: Literal["Active"] | Literal["Inactive"] = "Active" if game.active else "Inactive"
             game_list += f"- {game.name}{nickname}{primary} - {status}\n"
 
         return game_list
@@ -65,7 +70,6 @@ class SetPrimaryGameCommand(Command):
         if not existing_game:
             return f"Game {game_name} not found or not active"
 
-        await Game.filter(active=True).update(primary_game=False)
         await Game.filter(id=existing_game.id).update(primary_game=True)
         return f"Game {game_name} has been set as the primary game"
 
