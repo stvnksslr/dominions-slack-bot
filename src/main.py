@@ -1,7 +1,7 @@
 from asyncio import create_task, run, sleep
 from json import JSONDecodeError, loads
 from random import choice
-from re import compile
+from re import compile as re_compile
 from typing import Any, NoReturn
 
 from loguru import logger
@@ -30,7 +30,7 @@ async def send_response(say, response: str | list[dict[str, Any]]) -> None:
         await say(blocks=response, text="Response (see blocks for formatted content)")
 
 
-@app.message(keyword=compile(pattern="(?i)grog"))
+@app.message(keyword=re_compile(pattern="(?i)grog"))
 async def grog_responder(say) -> None:
     """
     when the word grog is mentioned in a channel the bot is present it
@@ -40,7 +40,7 @@ async def grog_responder(say) -> None:
     await say(random_grog)
 
 
-@app.message(keyword=compile(pattern=r"\bmad\b"))
+@app.message(keyword=re_compile(pattern=r"\bmad\b"))
 async def mad_reactor(message, client) -> None:
     """
     when someone is mad, let them know that they're mad

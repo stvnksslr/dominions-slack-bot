@@ -52,7 +52,7 @@ async def update_games_wrapper() -> None:
             # Check if the turn is finished
             if game_details.time_left and game_details.time_left.lower() == "finished":
                 logger.info(f"Turn finished for game {game.name}. Setting game to inactive.")
-                await Game.filter(name=game.name).update(active=False)
+                await Game.filter(name=game.name).update(active=False, primary_game=False)
 
             logger.info("update complete")
         except GameDetailsFetchError as e:

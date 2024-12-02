@@ -1,6 +1,6 @@
-from re import compile
+from re import compile as re_compile
 
-MAD_FINDER = compile(pattern=r"\bmad\b")
+MAD_FINDER = re_compile(pattern=r"\bmad\b")
 
 
 def test__mad_reactor_returns_true() -> None:
