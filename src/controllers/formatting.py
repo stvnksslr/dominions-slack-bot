@@ -3,7 +3,7 @@ from typing import Any
 from src.models.app.lobby_details import LobbyDetails
 
 
-def get_emoji(turn_status):
+def get_emoji(turn_status: str) -> str:
     """
     This function takes a player's turn status as an argument and returns an emoji that corresponds to the status.
     The function uses Python's match statement to check the value of turn_status and return the appropriate emoji.
@@ -24,7 +24,7 @@ def get_emoji(turn_status):
             return ":gungoose:"
 
 
-def create_nations_block(player_list) -> list:
+def create_nations_block(player_list: list) -> list:
     """
     Attempts to create and format a slack modal
 
@@ -111,7 +111,7 @@ def create_game_details_block_from_db(lobby_details: LobbyDetails) -> list[Any]:
     return formatted_msg
 
 
-def create_nations_block_from_db(player_list) -> list:
+def create_nations_block_from_db(player_list: list) -> list:
     player_blocks = []
 
     for player in player_list:

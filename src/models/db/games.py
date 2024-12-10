@@ -16,5 +16,7 @@ class Game(BaseModel):
     turn = fields.IntField(default=0)
     time_left = fields.TextField(null=True)
     players: fields.ManyToManyRelation["Player"] = fields.ManyToManyField(
-        model_name="models.Player", related_name="games", on_delete=fields.OnDelete.CASCADE
+        model_name="models.Player",
+        related_name="games",
+        on_delete=fields.OnDelete.CASCADE,
     )
