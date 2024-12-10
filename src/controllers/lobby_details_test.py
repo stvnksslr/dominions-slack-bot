@@ -14,7 +14,7 @@ class MockConnectionError(Exception):
 
 
 @pytest.fixture
-def mock_html_content():
+def mock_html_content() -> str:
     return """
     <html><body>
         <tr>Server Info, Turn 1 (1 day left)</tr>
@@ -24,17 +24,17 @@ def mock_html_content():
 
 
 @pytest.fixture
-def mock_game():
+def mock_game() -> MagicMock:
     return MagicMock(spec=Game, name="TestGame", turn="1", time_left="1 day left")
 
 
 @pytest.fixture
-def mock_players():
+def mock_players() -> list[MagicMock]:
     return [MagicMock(spec=Player, short_name="Player1", turn_status="Turn played")]
 
 
 @pytest.mark.asyncio
-async def test_get_lobby_details_web_source(mock_html_content):
+async def test_get_lobby_details_web_source(mock_html_content: str) -> None:
     mock_response = AsyncMock(spec=ClientResponse)
     mock_response.text.return_value = mock_html_content
     mock_session = AsyncMock(spec=ClientSession)
@@ -60,7 +60,7 @@ async def test_get_lobby_details_web_source(mock_html_content):
 
 
 @pytest.mark.asyncio
-async def test_get_lobby_details_db_source(mock_game, mock_players):
+async def test_get_lobby_details_db_source(mock_game: MagicMock, mock_players: list[MagicMock]) -> None:
     with (
         patch("src.controllers.lobby_details.Game.filter") as mock_game_filter,
         patch("src.controllers.lobby_details.fetch_lobby_details_from_db") as mock_fetch,
@@ -83,7 +83,7 @@ async def test_get_lobby_details_db_source(mock_game, mock_players):
 
 
 @pytest.mark.asyncio
-async def test_get_lobby_details_web_source_failure():
+async def test_get_lobby_details_web_source_failure() -> None:
     with patch("src.controllers.lobby_details.fetch_lobby_details_from_web") as mock_fetch:
         mock_fetch.side_effect = ValueError("Failed to fetch lobby details from web source")
         result = await get_lobby_details("server_name", use_db=False)
@@ -91,14 +91,14 @@ async def test_get_lobby_details_web_source_failure():
 
 
 @pytest.mark.asyncio
-async def test_get_lobby_details_db_source_failure():
+async def test_get_lobby_details_db_source_failure() -> None:
     with patch("src.controllers.lobby_details.fetch_lobby_details_from_db") as mock_fetch:
         mock_fetch.return_value = None
         result = await get_lobby_details("NonexistentGame", use_db=True)
         assert result == []  # Expect an empty list instead of raising an error
 
 
-def test_format_lobby_details():
+def test_format_lobby_details() -> None:
     lobby_details = LobbyDetails(
         server_info="Test Server, Turn 1 (1 day left)",
         player_status=[PlayerStatus(name="Player1", turn_status="Turn played")],

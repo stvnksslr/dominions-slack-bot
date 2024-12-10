@@ -1,2 +1,2 @@
-from .games import Game
-from .players import Player
+from .games import Game  # noqa: F401
+from .players import Player  # noqa: F401

@@ -50,7 +50,7 @@ async def fetch_lobby_details_from_web(game_name: str) -> LobbyDetails | None:
             columns = row.find_all("td")
             if len(columns) >= 2:
                 player_status_list.append(
-                    PlayerStatus(name=columns[0].text.strip(), turn_status=columns[1].text.strip())
+                    PlayerStatus(name=columns[0].text.strip(), turn_status=columns[1].text.strip()),
                 )
 
         return LobbyDetails(

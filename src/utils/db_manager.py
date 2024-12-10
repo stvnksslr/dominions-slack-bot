@@ -1,4 +1,3 @@
-import tortoise
 from loguru import logger
 from tortoise import Tortoise
 
