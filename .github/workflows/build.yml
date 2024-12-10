@@ -35,12 +35,12 @@ jobs:
       #              run formatter
       #----------------------------------------------
       - name: Run formatter
-        run: uv run ruff format . --check
+        run: uv run ruff format --check
       #----------------------------------------------
       #              run linter
       #----------------------------------------------
       - name: Run linters
-        run: uv run ruff check .
+        run: uv run ruff check 
       #----------------------------------------------
       #              run type check
       #----------------------------------------------
