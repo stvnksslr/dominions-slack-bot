@@ -28,7 +28,7 @@ dev-dependencies = [
     "pytest-random-order==1.1.1",
     "pytest-sugar==1.0.0",
     "pytest==8.3.4",
-    "ruff==0.8.1",
+    "ruff==0.11.0",
     "types-beautifulsoup4==4.12.0.20241020",
 ]
 
@@ -40,7 +40,7 @@ src_folder = "./."
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
-addopts = "-vv --random-order"
+addopts = ["-vv", "--random-order"]
 
 [tool.coverage.run]
 omit = ['__init__.py', '.venv/*', '*/migrations/*', '*_test.py']
