@@ -21,4 +21,6 @@ grog_response_list = [
     "Once there were brook trout in the streams in the mountains. You could see them standing in the amber current where the white edges of their fins wimpled softly in the flow. They smelled of moss in your hand. Polished and muscular and torsional.",
     "On their backs were vermiculate patterns that were maps of the world in its becoming. Maps and mazes. Of a thing which could not be put back. Not be made right again. In the deep glens where they lived all things were older than man and they hummed of mystery.",
     "Marchioness of Grogmondeley",
+    "Beneath the waves we were invincible, in a world without frontiers. (World without walls) Beneath the waves we were inseparable, in a world without walls. Faces of cerulean oceans, Mirroring stars and sable skies, But a memory… How I miss the scent of sweet emotions, of a world so pure, devoid of cries. But a memory…",
+    "The smile of dawn arrived early May, she carried a gift from her home. The night shed a tear, to tell her of fear, and of sorrow and pain, she'll never outgrow, death is the first dance, eternal! There's no more freedom. The both of you will be confined, to this mind.",
 ]
