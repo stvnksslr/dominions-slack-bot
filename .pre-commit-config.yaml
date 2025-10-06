@@ -19,11 +19,11 @@ repos:
         types: [python]
         pass_filenames: false
         always_run: true
-      - id: mypy
-        name: mypy
-        entry: ./.venv/bin/mypy
+      - id: ty
+        name: ty
+        entry: ./.venv/bin/ty
         args:
-          - src
+          - check
         language: system
         types: [python]
         pass_filenames: false

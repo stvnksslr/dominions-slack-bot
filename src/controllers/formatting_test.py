@@ -146,7 +146,7 @@ async def test_fetch_lobby_details_from_web() -> None:
 
     with patch("src.controllers.lobby_details.ClientSession") as mock_client_session:
         mock_client_session.return_value.__aenter__.return_value = mock_session
-        from src.controllers.lobby_details import fetch_lobby_details_from_web
+        from src.controllers.lobby_details import fetch_lobby_details_from_web  # noqa: PLC0415
 
         result = await fetch_lobby_details_from_web("test_server")
 
@@ -180,7 +180,7 @@ async def test_fetch_lobby_details_from_db() -> None:
         game=mock_game,
     )
 
-    from src.controllers.lobby_details import fetch_lobby_details_from_db
+    from src.controllers.lobby_details import fetch_lobby_details_from_db  # noqa: PLC0415
 
     result = await fetch_lobby_details_from_db("TestGame")
 

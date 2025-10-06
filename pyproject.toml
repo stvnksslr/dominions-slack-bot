@@ -18,19 +18,18 @@ dependencies = [
     "uvloop==0.21.0",
 ]
 
-[tool.uv]
-dev-dependencies = [
-    "mypy==1.13.0",
-    "pre-commit==4.0.1",
+[dependency-groups]
+dev = [
     "pytest-asyncio==0.24.0",
     "pytest-clarity==1.0.1",
     "pytest-cov==6.0.0",
     "pytest-random-order==1.1.1",
     "pytest-sugar==1.0.0",
     "pytest==8.3.4",
-    "ruff==0.11.0",
-    "types-beautifulsoup4==4.12.0.20241020",
+    "ruff>=0.13.0",
+    "ty>=0.0.0a7",
 ]
+
 
 [tool.aerich]
 tortoise_orm = "src.utils.db_manager.TORTOISE_ORM"
