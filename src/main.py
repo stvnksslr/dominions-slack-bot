@@ -3,7 +3,7 @@ from collections.abc import Awaitable, Callable
 from json import JSONDecodeError, loads
 from random import choice
 from re import compile as re_compile
-from typing import Any, NoReturn, TypedDict
+from typing import Any, NoReturn, TypedDict, cast
 
 from loguru import logger
 from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
@@ -34,9 +34,9 @@ async def send_response(
     Helper function to send a response, handling both string and Slack block formats.
     """
     if isinstance(response, str):
-        await say({"text": response})
+        await say(cast(SlackSayResponse, {"text": response}))
     else:
-        await say({"blocks": response, "text": "Response (see blocks for formatted content)"})
+        await say(cast(SlackSayResponse, {"blocks": response, "text": "Response (see blocks for formatted content)"}))
 
 
 @app.message(keyword=re_compile(pattern="(?i)grog"))
@@ -46,7 +46,7 @@ async def grog_responder(say: Callable[[SlackSayResponse], Awaitable[Any]]) -> N
     will return one of several random responses
     """
     random_grog = choice(seq=grog_response_list)
-    await say({"text": random_grog})
+    await say(cast(SlackSayResponse, {"text": random_grog}))
 
 
 async def mad_reactor(message: dict[str, Any], client: AsyncWebClient) -> None:
@@ -76,12 +76,16 @@ async def handle_add_game_command(
         # Attempt to parse the response as JSON
         parsed_response = loads(response)
         if isinstance(parsed_response, list):
-            await say({"blocks": parsed_response, "text": "Response (see blocks for formatted content)"})
+            await say(
+                cast(
+                    SlackSayResponse, {"blocks": parsed_response, "text": "Response (see blocks for formatted content)"}
+                )
+            )
         else:
-            await say({"text": response})
+            await say(cast(SlackSayResponse, {"text": response}))
     except JSONDecodeError:
         # If it's not valid JSON, treat it as a plain string
-        await say({"text": response})
+        await say(cast(SlackSayResponse, {"text": response}))
 
 
 @app.command(command="/check")
@@ -95,7 +99,7 @@ async def fetch_server_status(
     game_name = command["text"].strip()
 
     if not game_name:
-        await say({"text": "Please provide a game name. Usage: /check [game_name]"})
+        await say(cast(SlackSayResponse, {"text": "Please provide a game name. Usage: /check [game_name]"}))
         return
 
     try:
@@ -104,7 +108,7 @@ async def fetch_server_status(
         await send_response(say, response)
     except Exception as e:
         logger.error(f"Error fetching game details: {e}")
-        await say({"text": f"An error occurred while fetching game details: {e!s}"})
+        await say(cast(SlackSayResponse, {"text": f"An error occurred while fetching game details: {e!s}"}))
 
 
 @app.command(command="/turn")
