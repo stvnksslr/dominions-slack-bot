@@ -31,7 +31,8 @@ jobs:
         with:
           enable-cache: true
       - name: Install Python
-        run: uv python install ${{ env.PYTHON_VERSION }}
+        run: uv python install ${{ env.PYTHON_VERSION }}      
+      #----------------------------------------------
       #              run formatter
       #----------------------------------------------
       - name: Run formatter
