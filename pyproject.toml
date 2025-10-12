@@ -15,7 +15,6 @@ dependencies = [
     "python-dotenv==1.1.1",
     "slack-bolt==1.26.0",
     "tortoise-orm[asyncmy]==0.25.1",
-    "uvloop==0.21.0",
 ]
 
 [dependency-groups]
@@ -29,7 +28,6 @@ dev = [
     "ruff>=0.14.0",
     "ty>=0.0.1a22",
 ]
-
 
 [tool.aerich]
 tortoise_orm = "src.utils.db_manager.TORTOISE_ORM"
