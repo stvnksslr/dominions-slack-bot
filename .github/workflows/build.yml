@@ -12,7 +12,7 @@ on:
       - "*.*"
 
 env:
-  PYTHON_VERSION: "3.12"
+  PYTHON_VERSION: "3.14"
 
 jobs:
   test:
@@ -45,7 +45,7 @@ jobs:
       #              run type check
       #----------------------------------------------
       - name: Run type check
-        run: uv run mypy src
+        run: uv run ty check
       #----------------------------------------------
       #              run test suite
       #----------------------------------------------
