@@ -170,7 +170,7 @@ async def set_primary_button_handler(
 
 
 # Modal view submission handlers
-@app.view({"callback_id": "remove_game_modal_submit"})
+@app.view("remove_game_modal_submit")
 async def remove_game_modal_submit_handler(
     ack: Callable[[], Awaitable[None]], body: dict[str, Any], client: AsyncWebClient
 ) -> None:
@@ -178,7 +178,7 @@ async def remove_game_modal_submit_handler(
     await handle_remove_game_modal_submit(ack, body, client)
 
 
-@app.view({"callback_id": "set_primary_modal_submit"})
+@app.view("set_primary_modal_submit")
 async def set_primary_modal_submit_handler(
     ack: Callable[[], Awaitable[None]], body: dict[str, Any], client: AsyncWebClient
 ) -> None:
@@ -186,7 +186,7 @@ async def set_primary_modal_submit_handler(
     await handle_set_primary_modal_submit(ack, body, client)
 
 
-@app.view({"callback_id": "add_game_modal_submit"})
+@app.view("add_game_modal_submit")
 async def add_game_modal_submit_handler(
     ack: Callable[[], Awaitable[None]], body: dict[str, Any], client: AsyncWebClient
 ) -> None:
