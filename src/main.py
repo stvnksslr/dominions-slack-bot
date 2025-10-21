@@ -8,6 +8,7 @@ from typing import Any, NoReturn, TypedDict, cast
 from loguru import logger
 from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
 from slack_sdk.web.async_client import AsyncWebClient
+from uvloop import install as install_uvloop
 
 from src.commands.command_factory import CommandFactory
 from src.controllers.command_parser import command_parser_wrapper
@@ -145,4 +146,5 @@ async def main() -> None:
 
 # Start your app
 if __name__ == "__main__":
+    install_uvloop()
     run(main=main())
