@@ -1,5 +1,7 @@
+from json import dumps
 from typing import TYPE_CHECKING, Literal
 
+from src.controllers.formatting import create_error_block, create_info_block, create_success_block
 from src.controllers.lobby_details import fetch_lobby_details_from_web
 from src.models.db import Game
 from src.models.db.players import Player
@@ -14,12 +16,17 @@ class AddGameCommand(Command):
     async def execute(self, game_name: str) -> str:
         existing_game: Game | None = await Game.filter(name=game_name, active=True).first()
         if existing_game:
-            return f"game {game_name} already exists"
+            return dumps(create_error_block(f"Game '{game_name}' already exists", "Use `/dom game list` to see all games"))
 
         try:
             game_details: LobbyDetails | None = await fetch_lobby_details_from_web(game_name=game_name)
             if game_details is None:
-                return f"Failed to fetch game details for {game_name}"
+                return dumps(
+                    create_error_block(
+                        f"Failed to fetch game details for '{game_name}'",
+                        "Check that the game name is correct and exists on the Dominions server",
+                    )
+                )
 
             # Create the game first
             current_game = await Game.create(name=game_name, turn=game_details.turn, time_left=game_details.time_left)
@@ -33,58 +40,106 @@ class AddGameCommand(Command):
                     game=current_game,  # Set the game reference directly
                 )
 
-            return f"game {game_name} added successfully with {len(game_details.player_status)} players"
+            return dumps(
+                create_success_block(
+                    "Game Added Successfully",
+                    f"• Game: *{game_name}*\n• Players: {len(game_details.player_status)} nations tracked\n• Turn: {game_details.turn}\n• Next update: ~15 minutes",
+                )
+            )
         except Exception as e:
-            return f"Error adding game: {e!s}"
+            return dumps(create_error_block(f"Error adding game: {e!s}"))
 
 
 class RemoveGameCommand(Command):
     async def execute(self, game_name: str) -> str:
+        game = await Game.filter(name=game_name, active=True).first()
+        if not game:
+            return dumps(create_error_block(f"Game '{game_name}' not found", "Use `/dom game list` to see active games"))
+
         await Game.filter(name=game_name).update(active=False)
-        return f"game {game_name} deleted"
+        return dumps(
+            create_success_block("Game Removed", f"*{game_name}* has been deactivated and will no longer be tracked")
+        )
 
 
 class NicknameGameCommand(Command):
     async def execute(self, game_name: str, nickname: str) -> str:
+        game = await Game.filter(name=game_name, active=True).first()
+        if not game:
+            return dumps(create_error_block(f"Game '{game_name}' not found", "Use `/dom game list` to see active games"))
+
         await Game.filter(name=game_name).update(nickname=nickname)
-        return f"game {game_name} nickname {nickname}"
+        return dumps(create_success_block("Nickname Set", f"*{game_name}* will now display as *{nickname}*"))
 
 
 class ListGamesCommand(Command):
     async def execute(self) -> str:
         all_games: list[Game] = await Game.filter(active=True)
         if not all_games:
-            return "No games found."
+            return dumps(create_info_block("No Active Games", "Use `/dom game add [game_name]` to start tracking a game"))
 
-        game_list = "Games:\n"
+        blocks = [{"type": "header", "text": {"type": "plain_text", "text": "Active Games"}}, {"type": "divider"}]
+
         for game in all_games:
-            nickname = f" (Nickname: {game.nickname})" if game.nickname else ""
-            primary: Literal[" [PRIMARY]"] | Literal[""] = " [PRIMARY]" if game.primary_game else ""
-            status: Literal["Active"] | Literal["Inactive"] = "Active" if game.active else "Inactive"
-            game_list += f"- {game.name}{nickname}{primary} - {status}\n"
+            display_name = game.nickname or game.name
+            primary_badge = " :star:" if game.primary_game else ""
+            turn_info = f"Turn {game.turn}" if game.turn else "Turn: Unknown"
+            time_info = game.time_left if game.time_left else "Time remaining: Unknown"
 
-        return game_list
+            game_text = f"*{display_name}*{primary_badge}\n• Game ID: `{game.name}`\n• {turn_info}\n• {time_info}"
+
+            blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": game_text}})
+
+        blocks.append({"type": "divider"})
+        blocks.append(
+            {
+                "type": "context",
+                "elements": [{"type": "mrkdwn", "text": f"Total: {len(all_games)} game(s) | :star: = Primary game"}],
+            }
+        )
+
+        return dumps(blocks)
 
 
 class SetPrimaryGameCommand(Command):
     async def execute(self, game_name: str) -> str:
         existing_game = await Game.filter(name=game_name, active=True).first()
         if not existing_game:
-            return f"Game {game_name} not found or not active"
+            return dumps(
+                create_error_block(
+                    f"Game '{game_name}' not found or inactive", "Use `/dom game list` to see active games"
+                )
+            )
 
+        # Unset all other primary games first
+        await Game.all().update(primary_game=False)
+        # Set this game as primary
         await Game.filter(id=existing_game.id).update(primary_game=True)
-        return f"Game {game_name} has been set as the primary game"
+
+        return dumps(
+            create_success_block(
+                "Primary Game Set", f"*{game_name}* is now the primary game\n• Use `/dom turn` to see status quickly"
+            )
+        )
 
 
 class SetGameStatusCommand(Command):
     async def execute(self, game_name: str, status: str) -> str:
         if status not in ["active", "inactive"]:
-            return "Invalid status. Use 'active' or 'inactive'."
+            return dumps(
+                create_error_block(
+                    "Invalid status value", "Status must be either `active` or `inactive`\n• Usage: `/dom game status [game_name] [active|inactive]`"
+                )
+            )
 
         game = await Game.filter(name=game_name).first()
         if not game:
-            return f"Game {game_name} not found"
+            return dumps(create_error_block(f"Game '{game_name}' not found", "Use `/dom game list` to see all games"))
 
         game.active = status == "active"
         await game.save()
-        return f"Game {game_name} status set to {status}"
+
+        status_emoji = ":white_check_mark:" if status == "active" else ":no_entry_sign:"
+        return dumps(
+            create_success_block("Game Status Updated", f"{status_emoji} *{game_name}* is now *{status}*")
+        )
