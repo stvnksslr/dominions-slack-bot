@@ -135,12 +135,8 @@ def create_game_details_block(lobby_details: LobbyDetails, game_name: str | None
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": " :freak_lord: *Update* :freak_lord: 🔴 *LIVE*",
+                "text": " :freak_lord: *Update* :freak_lord: ",
             },
-        },
-        {
-            "type": "context",
-            "elements": [{"type": "mrkdwn", "text": "🔴 Real-time data from Dominions server"}],
         },
         {
             "type": "section",
@@ -192,12 +188,8 @@ def create_game_details_block_from_db(lobby_details: LobbyDetails) -> list[Any]:
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": " :freak_lord: *Update* :freak_lord: 🟢 *CACHED*",
+                "text": " :freak_lord: *Update* :freak_lord:",
             },
-        },
-        {
-            "type": "context",
-            "elements": [{"type": "mrkdwn", "text": "🟢 Cached data (updates every 15 minutes)"}],
         },
         {
             "type": "section",
