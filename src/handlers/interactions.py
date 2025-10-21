@@ -2,6 +2,8 @@
 Handlers for Slack interactive components (buttons, modals, etc.)
 """
 
+import contextlib
+import json
 from collections.abc import Awaitable, Callable
 from json import loads
 from typing import Any
@@ -53,9 +55,7 @@ async def handle_set_primary_game(ack: Callable[[], Awaitable[None]], body: dict
         response = await command_obj.execute(game_name)
 
         # The response is already JSON formatted from the command
-        import json
-
-        response_blocks = json.loads(response)
+        response_blocks = json.loads(response) if isinstance(response, str) else response
         await say({"blocks": response_blocks, "text": f"Primary game set to {game_name}"})
 
     except Exception as e:
@@ -63,7 +63,9 @@ async def handle_set_primary_game(ack: Callable[[], Awaitable[None]], body: dict
         await say({"text": f"❌ Error setting primary game: {e!s}"})
 
 
-async def open_remove_game_modal(ack: Callable[[], Awaitable[None]], body: dict[str, Any], client: AsyncWebClient) -> None:
+async def open_remove_game_modal(
+    ack: Callable[[], Awaitable[None]], body: dict[str, Any], client: AsyncWebClient
+) -> None:
     """
     Open a modal with a dropdown to select a game to remove.
     """
@@ -78,7 +80,7 @@ async def open_remove_game_modal(ack: Callable[[], Awaitable[None]], body: dict[
             await client.chat_postEphemeral(
                 channel=body["channel"]["id"],
                 user=body["user"]["id"],
-                text="ℹ️ No active games found. Use `/dom game add [game_name]` to track a game.",
+                text="No active games found. Use `/dom game add [game_name]` to track a game.",
             )
             return
 
@@ -116,7 +118,8 @@ async def open_remove_game_modal(ack: Callable[[], Awaitable[None]], body: dict[
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": "⚠️ *Warning*\nThis will deactivate the game and stop tracking updates. The game data will remain in the database but will be marked as inactive.",
+                            "text": "⚠️ *Warning*\nThis will deactivate the game and stop tracking updates. "
+                            "The game data will remain in the database but will be marked as inactive.",
                         },
                     },
                 ],
@@ -127,7 +130,9 @@ async def open_remove_game_modal(ack: Callable[[], Awaitable[None]], body: dict[
         logger.error(f"Error opening remove game modal: {e}")
 
 
-async def handle_remove_game_modal_submit(ack: Callable[[], Awaitable[None]], body: dict[str, Any], client: AsyncWebClient) -> None:
+async def handle_remove_game_modal_submit(
+    ack: Callable[[], Awaitable[None]], body: dict[str, Any], client: AsyncWebClient
+) -> None:
     """
     Handle the submission of the remove game modal.
     """
@@ -145,7 +150,7 @@ async def handle_remove_game_modal_submit(ack: Callable[[], Awaitable[None]], bo
         response = await command_obj.execute(game_name)
 
         # Parse the response and send it to the channel
-        response_blocks = loads(response)
+        response_blocks = loads(response) if isinstance(response, str) else response
 
         # Post message to the channel where the modal was triggered
         await client.chat_postMessage(
@@ -158,7 +163,9 @@ async def handle_remove_game_modal_submit(ack: Callable[[], Awaitable[None]], bo
         logger.error(f"Error handling remove game modal submit: {e}")
 
 
-async def open_set_primary_modal(ack: Callable[[], Awaitable[None]], body: dict[str, Any], client: AsyncWebClient) -> None:
+async def open_set_primary_modal(
+    ack: Callable[[], Awaitable[None]], body: dict[str, Any], client: AsyncWebClient
+) -> None:
     """
     Open a modal with a dropdown to select a game to set as primary.
     """
@@ -172,7 +179,7 @@ async def open_set_primary_modal(ack: Callable[[], Awaitable[None]], body: dict[
             await client.chat_postEphemeral(
                 channel=body["channel"]["id"],
                 user=body["user"]["id"],
-                text="ℹ️ No active games found. Use `/dom game add [game_name]` to track a game.",
+                text="No active games found. Use `/dom game add [game_name]` to track a game.",
             )
             return
 
@@ -214,7 +221,8 @@ async def open_set_primary_modal(ack: Callable[[], Awaitable[None]], body: dict[
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": "ℹ️ The primary game is used by `/dom turn` to quickly check status without specifying a game name.",
+                            "text": "The primary game is used by `/dom turn` "
+                            "to quickly check status without specifying a game name.",
                         },
                     },
                 ],
@@ -225,7 +233,9 @@ async def open_set_primary_modal(ack: Callable[[], Awaitable[None]], body: dict[
         logger.error(f"Error opening set primary modal: {e}")
 
 
-async def handle_set_primary_modal_submit(ack: Callable[[], Awaitable[None]], body: dict[str, Any], client: AsyncWebClient) -> None:
+async def handle_set_primary_modal_submit(
+    ack: Callable[[], Awaitable[None]], body: dict[str, Any], client: AsyncWebClient
+) -> None:
     """
     Handle the submission of the set primary game modal.
     """
@@ -243,7 +253,7 @@ async def handle_set_primary_modal_submit(ack: Callable[[], Awaitable[None]], bo
         response = await command_obj.execute(game_name)
 
         # Parse the response and send it to the user
-        response_blocks = loads(response)
+        response_blocks = loads(response) if isinstance(response, str) else response
 
         await client.chat_postMessage(
             channel=body["user"]["id"],  # Send as DM
@@ -320,7 +330,9 @@ async def open_add_game_modal(ack: Callable[[], Awaitable[None]], body: dict[str
         logger.error(f"Error opening add game modal: {e}")
 
 
-async def handle_add_game_modal_submit(ack: Callable[[], Awaitable[None]], body: dict[str, Any], client: AsyncWebClient) -> None:
+async def handle_add_game_modal_submit(
+    ack: Callable[[], Awaitable[None]], body: dict[str, Any], client: AsyncWebClient
+) -> None:
     """
     Handle the submission of the add game modal.
     """
@@ -340,7 +352,7 @@ async def handle_add_game_modal_submit(ack: Callable[[], Awaitable[None]], body:
         response = await command_obj.execute(game_name)
 
         # Parse the response
-        response_blocks = loads(response)
+        response_blocks = loads(response) if isinstance(response, str) else response
 
         # If nickname was provided, set it
         if nickname:
@@ -362,10 +374,8 @@ async def handle_add_game_modal_submit(ack: Callable[[], Awaitable[None]], body:
     except Exception as e:
         logger.error(f"Error handling add game modal submit: {e}")
         # Send error message to user
-        try:
+        with contextlib.suppress(Exception):
             await client.chat_postMessage(
                 channel=body["user"]["id"],
                 text=f"❌ Error adding game: {e!s}",
             )
-        except Exception:
-            pass

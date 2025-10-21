@@ -1,5 +1,5 @@
 from json import dumps
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING
 
 from src.controllers.formatting import create_error_block, create_info_block, create_success_block
 from src.controllers.lobby_details import fetch_lobby_details_from_web
@@ -16,7 +16,9 @@ class AddGameCommand(Command):
     async def execute(self, game_name: str) -> str:
         existing_game: Game | None = await Game.filter(name=game_name, active=True).first()
         if existing_game:
-            return dumps(create_error_block(f"Game '{game_name}' already exists", "Use `/dom game list` to see all games"))
+            return dumps(
+                create_error_block(f"Game '{game_name}' already exists", "Use `/dom game list` to see all games")
+            )
 
         try:
             game_details: LobbyDetails | None = await fetch_lobby_details_from_web(game_name=game_name)
@@ -43,7 +45,10 @@ class AddGameCommand(Command):
             return dumps(
                 create_success_block(
                     "Game Added Successfully",
-                    f"• Game: *{game_name}*\n• Players: {len(game_details.player_status)} nations tracked\n• Turn: {game_details.turn}\n• Next update: ~15 minutes",
+                    f"• Game: *{game_name}*\n"
+                    f"• Players: {len(game_details.player_status)} nations tracked\n"
+                    f"• Turn: {game_details.turn}\n"
+                    f"• Next update: ~15 minutes",
                 )
             )
         except Exception as e:
@@ -54,7 +59,9 @@ class RemoveGameCommand(Command):
     async def execute(self, game_name: str) -> str:
         game = await Game.filter(name=game_name, active=True).first()
         if not game:
-            return dumps(create_error_block(f"Game '{game_name}' not found", "Use `/dom game list` to see active games"))
+            return dumps(
+                create_error_block(f"Game '{game_name}' not found", "Use `/dom game list` to see active games")
+            )
 
         await Game.filter(name=game_name).update(active=False)
         return dumps(
@@ -66,7 +73,9 @@ class NicknameGameCommand(Command):
     async def execute(self, game_name: str, nickname: str) -> str:
         game = await Game.filter(name=game_name, active=True).first()
         if not game:
-            return dumps(create_error_block(f"Game '{game_name}' not found", "Use `/dom game list` to see active games"))
+            return dumps(
+                create_error_block(f"Game '{game_name}' not found", "Use `/dom game list` to see active games")
+            )
 
         await Game.filter(name=game_name).update(nickname=nickname)
         return dumps(create_success_block("Nickname Set", f"*{game_name}* will now display as *{nickname}*"))
@@ -76,7 +85,9 @@ class ListGamesCommand(Command):
     async def execute(self) -> str:
         all_games: list[Game] = await Game.filter(active=True)
         if not all_games:
-            return dumps(create_info_block("No Active Games", "Use `/dom game add [game_name]` to start tracking a game"))
+            return dumps(
+                create_info_block("No Active Games", "Use `/dom game add [game_name]` to start tracking a game")
+            )
 
         blocks = [{"type": "header", "text": {"type": "plain_text", "text": "Active Games"}}, {"type": "divider"}]
 
@@ -128,7 +139,9 @@ class SetGameStatusCommand(Command):
         if status not in ["active", "inactive"]:
             return dumps(
                 create_error_block(
-                    "Invalid status value", "Status must be either `active` or `inactive`\n• Usage: `/dom game status [game_name] [active|inactive]`"
+                    "Invalid status value",
+                    "Status must be either `active` or `inactive`\n"
+                    "• Usage: `/dom game status [game_name] [active|inactive]`",
                 )
             )
 
@@ -140,6 +153,4 @@ class SetGameStatusCommand(Command):
         await game.save()
 
         status_emoji = ":white_check_mark:" if status == "active" else ":no_entry_sign:"
-        return dumps(
-            create_success_block("Game Status Updated", f"{status_emoji} *{game_name}* is now *{status}*")
-        )
+        return dumps(create_success_block("Game Status Updated", f"{status_emoji} *{game_name}* is now *{status}*"))

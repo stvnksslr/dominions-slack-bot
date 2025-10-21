@@ -227,10 +227,10 @@ def test_create_game_details_block() -> None:
         time_left="1 day left",
     )
     result = create_game_details_block(lobby_details)
-    assert len(result) == 6
+    assert len(result) == 7
     assert result[0]["type"] == "header"
     assert result[0]["text"]["text"] == "Dominions Times"
-    assert "Test Server, Turn 1 (1 day left)" in result[3]["text"]["text"]
+    assert "Test Server, Turn 1 (1 day left)" in result[4]["text"]["text"]
 
 
 def test_create_game_details_block_from_db() -> None:
@@ -241,12 +241,12 @@ def test_create_game_details_block_from_db() -> None:
         time_left="2 days left",
     )
     result = create_game_details_block_from_db(lobby_details)
-    assert len(result) == 8
+    assert len(result) == 9
     assert result[0]["type"] == "header"
     assert result[0]["text"]["text"] == "Dominions Times"
-    assert "Test Server - Turn 2" in result[3]["text"]["text"]
-    assert "Turn: 2" in result[4]["text"]["text"]
-    assert "2 days left" in result[5]["text"]["text"]
+    assert "Test Server - Turn 2" in result[4]["text"]["text"]
+    assert "Turn: 2" in result[5]["text"]["text"]
+    assert "2 days left" in result[6]["text"]["text"]
 
 
 def test_create_nations_block_from_db() -> None:
