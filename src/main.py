@@ -12,6 +12,13 @@ from uvloop import install as install_uvloop
 
 from src.commands.command_factory import CommandFactory
 from src.controllers.command_parser import command_parser_wrapper
+from src.handlers import (
+    handle_add_game_modal_submit,
+    handle_refresh_game_status,
+    handle_remove_game_modal_submit,
+    handle_set_primary_game,
+    handle_set_primary_modal_submit,
+)
 from src.responders import grog_response_list, mad_reactions_list
 from src.tasks.update_games import update_games_wrapper
 from src.utils.constants import SLACK_APP_TOKEN
@@ -49,6 +56,7 @@ async def grog_responder(say: Callable[[SlackSayResponse], Awaitable[Any]]) -> N
     await say(cast(SlackSayResponse, {"text": random_grog}))
 
 
+@app.message(keyword=re_compile(pattern=r"\bmad\b"))
 async def mad_reactor(message: dict[str, Any], client: AsyncWebClient) -> None:
     """
     when someone is mad, let them know that they're mad
@@ -94,6 +102,7 @@ async def fetch_server_status(
 ) -> None:
     """
     This function handles checking a game via the website instead of the db
+    DEPRECATED: Use /dom check [game_name] instead
     """
     await ack()
     game_name = command["text"].strip()
@@ -103,6 +112,14 @@ async def fetch_server_status(
         return
 
     try:
+        # Show deprecation notice
+        await say(
+            cast(
+                SlackSayResponse,
+                {"text": "⚠️ `/check` is deprecated. Please use `/dom check [game_name]` instead.\nFetching status..."},
+            )
+        )
+
         command_obj = CommandFactory.get_command("check")
         response = await command_obj.execute(game_name)
         await send_response(say, response)
@@ -113,9 +130,18 @@ async def fetch_server_status(
 
 @app.command(command="/turn")
 async def turn_command(ack: Callable[[], Awaitable[None]], say: Callable[[SlackSayResponse], Awaitable[Any]]) -> None:
+    """
+    DEPRECATED: Use /dom turn instead
+    """
+    await ack()
+
+    # Show deprecation notice
+    await say(
+        cast(SlackSayResponse, {"text": "⚠️ `/turn` is deprecated. Please use `/dom turn` instead.\nFetching status..."})
+    )
+
     command_obj = CommandFactory.get_command("turn")
     response = await command_obj.execute()
-    await ack()
     await send_response(say, response)
 
 
@@ -124,6 +150,48 @@ async def handle_message_events() -> None:
     """
     generic message handler to make sure messages get handled in some way
     """
+
+
+# Interactive component handlers
+@app.action({"action_id": "refresh_game_status"})
+async def refresh_button_handler(
+    ack: Callable[[], Awaitable[None]], body: dict[str, Any], say: Callable[[SlackSayResponse], Awaitable[Any]]
+) -> None:
+    """Handle refresh game status button clicks"""
+    await handle_refresh_game_status(ack, body, say)
+
+
+@app.action({"action_id": "set_primary_game"})
+async def set_primary_button_handler(
+    ack: Callable[[], Awaitable[None]], body: dict[str, Any], say: Callable[[SlackSayResponse], Awaitable[Any]]
+) -> None:
+    """Handle set primary game button clicks"""
+    await handle_set_primary_game(ack, body, say)
+
+
+# Modal view submission handlers
+@app.view({"callback_id": "remove_game_modal_submit"})
+async def remove_game_modal_submit_handler(
+    ack: Callable[[], Awaitable[None]], body: dict[str, Any], client: AsyncWebClient
+) -> None:
+    """Handle remove game modal submission"""
+    await handle_remove_game_modal_submit(ack, body, client)
+
+
+@app.view({"callback_id": "set_primary_modal_submit"})
+async def set_primary_modal_submit_handler(
+    ack: Callable[[], Awaitable[None]], body: dict[str, Any], client: AsyncWebClient
+) -> None:
+    """Handle set primary game modal submission"""
+    await handle_set_primary_modal_submit(ack, body, client)
+
+
+@app.view({"callback_id": "add_game_modal_submit"})
+async def add_game_modal_submit_handler(
+    ack: Callable[[], Awaitable[None]], body: dict[str, Any], client: AsyncWebClient
+) -> None:
+    """Handle add game modal submission"""
+    await handle_add_game_modal_submit(ack, body, client)
 
 
 async def periodic_task() -> NoReturn:
