@@ -103,7 +103,9 @@ class HelpCommand(Command):
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": "*Player Management*\n" "`/dom player [game] [nation] [name]` - Associate players with nations",
+                        "text": "*Player Management*\n"
+                        "`/dom player [game] [nation] [name]` - "
+                        "Associate players with nations",
                     },
                 },
                 {"type": "divider"},

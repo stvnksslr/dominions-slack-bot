@@ -40,20 +40,23 @@ async def command_parser_wrapper(command: str) -> str:
                 "primary": "`/dom game primary [game_name]`",
             }
             suggestion_text = suggestions.get(main_command, "`/dom help` to see all commands")
-            return dumps(
+            result = dumps(
                 create_error_block(
-                    f"Unknown command: '{main_command}'", f"💡 Did you mean: {suggestion_text}?\n\nUse `/dom help` for all commands"
+                    f"Unknown command: '{main_command}'",
+                    f"💡 Did you mean: {suggestion_text}?\n\nUse `/dom help` for all commands",
                 )
             )
-
-        if isinstance(result, str):
             return result
-        return dumps(result)
+
+        return result if isinstance(result, str) else dumps(result)
 
     except ValueError as e:
         logger.error(f"Error parsing command: {e}")
 
         # Try to provide helpful suggestions based on the command
+        error_message = "Command not recognized"
+        suggestion = f"Error: {e!s}\n\nUse `/dom help` to see all available commands"
+
         if main_command == "game" and len(command_list) > 1:
             subcommand = command_list[1]
             suggestions = {
@@ -64,12 +67,11 @@ async def command_parser_wrapper(command: str) -> str:
                 "primary": "Usage: `/dom game primary [game_name]`",
                 "status": "Usage: `/dom game status [game_name] [active|inactive]`",
             }
+            error_message = f"Invalid game subcommand: '{subcommand}'"
             suggestion = suggestions.get(subcommand, "Use `/dom help game` for game command help")
-            return dumps(create_error_block(f"Invalid game subcommand: '{subcommand}'", suggestion))
 
-        return dumps(
-            create_error_block("Command not recognized", f"Error: {e!s}\n\nUse `/dom help` to see all available commands")
-        )
+        return dumps(create_error_block(error_message, suggestion))
+
     except Exception as e:
         logger.error(f"Unexpected error: {e}")
         return dumps(create_error_block("Unexpected Error", f"An error occurred while processing the command: {e!s}"))

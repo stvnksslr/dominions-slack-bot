@@ -14,12 +14,12 @@ from .interactions import (
 )
 
 __all__ = [
+    "handle_add_game_modal_submit",
     "handle_refresh_game_status",
-    "handle_set_primary_game",
-    "open_remove_game_modal",
     "handle_remove_game_modal_submit",
-    "open_set_primary_modal",
+    "handle_set_primary_game",
     "handle_set_primary_modal_submit",
     "open_add_game_modal",
-    "handle_add_game_modal_submit",
+    "open_remove_game_modal",
+    "open_set_primary_modal",
 ]

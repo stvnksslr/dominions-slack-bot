@@ -23,7 +23,7 @@ from src.tasks.update_games import update_games_wrapper
 from src.utils.constants import SLACK_APP_TOKEN
 from src.utils.db_manager import init
 from src.utils.log_manager import setup_logger
-from src.utils.slack_manager import app, client
+from src.utils.slack_manager import app
 
 setup_logger()
 
@@ -115,9 +115,7 @@ async def fetch_server_status(
         await say(
             cast(
                 SlackSayResponse,
-                {
-                    "text": "⚠️ `/check` is deprecated. Please use `/dom check [game_name]` instead.\nFetching status..."
-                },
+                {"text": "⚠️ `/check` is deprecated. Please use `/dom check [game_name]` instead.\nFetching status..."},
             )
         )
 
@@ -154,7 +152,7 @@ async def handle_message_events() -> None:
 
 
 # Interactive component handlers
-@app.action(action_id="refresh_game_status")
+@app.action({"action_id": "refresh_game_status"})
 async def refresh_button_handler(
     ack: Callable[[], Awaitable[None]], body: dict[str, Any], say: Callable[[SlackSayResponse], Awaitable[Any]]
 ) -> None:
@@ -162,7 +160,7 @@ async def refresh_button_handler(
     await handle_refresh_game_status(ack, body, say)
 
 
-@app.action(action_id="set_primary_game")
+@app.action({"action_id": "set_primary_game"})
 async def set_primary_button_handler(
     ack: Callable[[], Awaitable[None]], body: dict[str, Any], say: Callable[[SlackSayResponse], Awaitable[Any]]
 ) -> None:
@@ -171,7 +169,7 @@ async def set_primary_button_handler(
 
 
 # Modal view submission handlers
-@app.view(callback_id="remove_game_modal_submit")
+@app.view({"callback_id": "remove_game_modal_submit"})
 async def remove_game_modal_submit_handler(
     ack: Callable[[], Awaitable[None]], body: dict[str, Any], client: AsyncWebClient
 ) -> None:
@@ -179,7 +177,7 @@ async def remove_game_modal_submit_handler(
     await handle_remove_game_modal_submit(ack, body, client)
 
 
-@app.view(callback_id="set_primary_modal_submit")
+@app.view({"callback_id": "set_primary_modal_submit"})
 async def set_primary_modal_submit_handler(
     ack: Callable[[], Awaitable[None]], body: dict[str, Any], client: AsyncWebClient
 ) -> None:
@@ -187,7 +185,7 @@ async def set_primary_modal_submit_handler(
     await handle_set_primary_modal_submit(ack, body, client)
 
 
-@app.view(callback_id="add_game_modal_submit")
+@app.view({"callback_id": "add_game_modal_submit"})
 async def add_game_modal_submit_handler(
     ack: Callable[[], Awaitable[None]], body: dict[str, Any], client: AsyncWebClient
 ) -> None:
