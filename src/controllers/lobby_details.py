@@ -91,11 +91,11 @@ async def fetch_lobby_details_from_db(game_name: str) -> LobbyDetails | None:
     )
 
 
-def format_lobby_details(lobby_details: LobbyDetails, use_db: bool = False) -> list[dict]:
+def format_lobby_details(lobby_details: LobbyDetails, use_db: bool = False, game_name: str | None = None) -> list[dict]:
     if use_db:
         game_details_block = create_game_details_block_from_db(lobby_details)
     else:
-        game_details_block = create_game_details_block(lobby_details)
+        game_details_block = create_game_details_block(lobby_details, game_name)
 
     nations_block = create_nations_block_from_db(lobby_details.player_status)
 
@@ -121,7 +121,7 @@ async def get_lobby_details(game_name: str, use_db: bool = False) -> list[Any]:
             logger.error(f"No lobby details found for game '{game_name}'")
             return []
 
-        return format_lobby_details(lobby_details, use_db)
+        return format_lobby_details(lobby_details, use_db, game_name)
 
     except Exception as e:
         logger.error(f"Error fetching lobby details for game '{game_name}': {e!s}")
