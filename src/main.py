@@ -1,4 +1,4 @@
-from asyncio import create_task, run, sleep
+from asyncio import gather, run, sleep
 from collections.abc import Awaitable, Callable
 from json import JSONDecodeError, loads
 from random import choice
@@ -206,10 +206,9 @@ async def main() -> None:
     main method to encapsulate the app
     """
     await init()
-    task = create_task(coro=periodic_task())
     handler = AsyncSocketModeHandler(app=app, app_token=SLACK_APP_TOKEN)
-    await handler.start_async()
-    task.cancel()
+    # Run both the handler and periodic task concurrently
+    await gather(handler.start_async(), periodic_task())
 
 
 # Start your app

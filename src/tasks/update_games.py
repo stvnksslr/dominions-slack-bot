@@ -40,7 +40,7 @@ async def update_games_wrapper() -> None:
 
             for player in game_details.player_status:
                 logger.debug(f"updating player {player.name}")
-                await Player().filter(game=game, nation=player.name).update(turn_status=player.turn_status)
+                await Player.filter(game=game, nation=player.name).update(turn_status=player.turn_status)
 
             if game.turn < int(game_details.turn):
                 logger.info("new turn detected")

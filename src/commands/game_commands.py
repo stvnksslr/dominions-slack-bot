@@ -1,6 +1,8 @@
 from json import dumps
 from typing import TYPE_CHECKING
 
+from tortoise.transactions import in_transaction
+
 from src.controllers.formatting import create_error_block, create_info_block, create_success_block
 from src.controllers.lobby_details import fetch_lobby_details_from_web
 from src.models.db import Game
@@ -122,10 +124,12 @@ class SetPrimaryGameCommand(Command):
                 )
             )
 
-        # Unset all other primary games first
-        await Game.all().update(primary_game=False)
-        # Set this game as primary
-        await Game.filter(id=existing_game.id).update(primary_game=True)
+        # Use transaction to ensure atomic update
+        async with in_transaction():
+            # Unset all other primary games first
+            await Game.all().update(primary_game=False)
+            # Set this game as primary
+            await Game.filter(id=existing_game.id).update(primary_game=True)
 
         return dumps(
             create_success_block(
