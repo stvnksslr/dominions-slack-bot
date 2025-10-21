@@ -10,7 +10,6 @@ from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
 from slack_sdk.web.async_client import AsyncWebClient
 from uvloop import install as install_uvloop
 
-from src.commands.command_factory import CommandFactory
 from src.controllers.command_parser import command_parser_wrapper
 from src.handlers import (
     handle_add_game_modal_submit,
@@ -94,55 +93,6 @@ async def handle_add_game_command(
     except JSONDecodeError:
         # If it's not valid JSON, treat it as a plain string
         await say(cast(SlackSayResponse, {"text": response}))
-
-
-@app.command(command="/check")
-async def fetch_server_status(
-    ack: Callable[[], Awaitable[None]], say: Callable[[SlackSayResponse], Awaitable[Any]], command: dict[str, Any]
-) -> None:
-    """
-    This function handles checking a game via the website instead of the db
-    DEPRECATED: Use /dom check [game_name] instead
-    """
-    await ack()
-    game_name = command["text"].strip()
-
-    if not game_name:
-        await say(cast(SlackSayResponse, {"text": "Please provide a game name. Usage: /check [game_name]"}))
-        return
-
-    try:
-        # Show deprecation notice
-        await say(
-            cast(
-                SlackSayResponse,
-                {"text": "⚠️ `/check` is deprecated. Please use `/dom check [game_name]` instead.\nFetching status..."},
-            )
-        )
-
-        command_obj = CommandFactory.get_command("check")
-        response = await command_obj.execute(game_name)
-        await send_response(say, response)
-    except Exception as e:
-        logger.error(f"Error fetching game details: {e}")
-        await say(cast(SlackSayResponse, {"text": f"An error occurred while fetching game details: {e!s}"}))
-
-
-@app.command(command="/turn")
-async def turn_command(ack: Callable[[], Awaitable[None]], say: Callable[[SlackSayResponse], Awaitable[Any]]) -> None:
-    """
-    DEPRECATED: Use /dom turn instead
-    """
-    await ack()
-
-    # Show deprecation notice
-    await say(
-        cast(SlackSayResponse, {"text": "⚠️ `/turn` is deprecated. Please use `/dom turn` instead.\nFetching status..."})
-    )
-
-    command_obj = CommandFactory.get_command("turn")
-    response = await command_obj.execute()
-    await send_response(say, response)
 
 
 @app.event(event="message")
