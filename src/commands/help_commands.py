@@ -59,13 +59,13 @@ class HelpCommand(Command):
                 "check": {
                     "title": "Check Command Help",
                     "usage": "`/dom check [game_name]` or `/check [game_name]`",
-                    "description": "Fetch the current status of a game from the Dominions server (🔴 LIVE data).\n\n"
+                    "description": "Fetch the current status of a game from the Dominions server.\n\n"
                     "This command scrapes the game's webpage directly for real-time information.",
                 },
                 "turn": {
                     "title": "Turn Command Help",
                     "usage": "`/dom turn` or `/turn`",
-                    "description": "Display the current turn status for the primary game (🟢 CACHED data).\n\n"
+                    "description": "Display the current turn status for the primary game.\n\n"
                     "This command uses the database cache, which updates every 15 minutes.",
                 },
             }
@@ -95,8 +95,8 @@ class HelpCommand(Command):
                         "type": "mrkdwn",
                         "text": "*Game Management*\n"
                         "`/dom game` - Manage tracked games\n"
-                        "`/dom check [game]` - Get live game status 🔴\n"
-                        "`/dom turn` - Get cached status for primary game 🟢",
+                        "`/dom check [game]` - Get live game status \n"
+                        "`/dom turn` - Get cached status for primary game",
                     },
                 },
                 {
