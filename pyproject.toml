@@ -12,6 +12,7 @@ dependencies = [
     "cryptography==46.0.2",
     "loguru==0.7.3",
     "pydantic==2.12.0",
+    "pyroscope-io>=0.8.8",
     "python-dotenv==1.1.1",
     "slack-bolt==1.26.0",
     "tortoise-orm[asyncmy]==0.25.1",

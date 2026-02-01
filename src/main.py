@@ -1,10 +1,12 @@
 from asyncio import gather, run, sleep
 from collections.abc import Awaitable, Callable
 from json import JSONDecodeError, loads
+from os import getenv
 from random import choice
 from re import compile as re_compile
 from typing import Any, NoReturn, TypedDict, cast
 
+import pyroscope
 from loguru import logger
 from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
 from slack_sdk.web.async_client import AsyncWebClient
@@ -26,6 +28,15 @@ from src.utils.log_manager import setup_logger
 from src.utils.slack_manager import app
 
 setup_logger()
+
+# Initialize Pyroscope profiling
+if pyroscope_server := getenv("PYROSCOPE_SERVER_ADDRESS"):
+    pyroscope.configure(
+        application_name=getenv("PYROSCOPE_APPLICATION_NAME", "feral-grog-bot"),
+        server_address=pyroscope_server,
+        tags={"namespace": getenv("POD_NAMESPACE", "bots")},
+    )
+    logger.info(f"Pyroscope profiling enabled, sending to {pyroscope_server}")
 
 
 class SlackSayResponse(TypedDict, total=False):
