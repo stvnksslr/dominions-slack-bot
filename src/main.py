@@ -31,12 +31,16 @@ setup_logger()
 
 # Initialize Pyroscope profiling
 if pyroscope_server := getenv("PYROSCOPE_SERVER_ADDRESS"):
+    gil_only = getenv("PYROSCOPE_GIL_ONLY", "true").lower() == "true"
     pyroscope.configure(
         application_name=getenv("PYROSCOPE_APPLICATION_NAME", "feral-grog-bot"),
         server_address=pyroscope_server,
         tags={"namespace": getenv("POD_NAMESPACE", "bots")},
+        oncpu=True,
+        gil_only=gil_only,
+        report_thread_name=True,
     )
-    logger.info(f"Pyroscope profiling enabled, sending to {pyroscope_server}")
+    logger.info(f"Pyroscope CPU profiling enabled (gil_only={gil_only}), sending to {pyroscope_server}")
 
 
 class SlackSayResponse(TypedDict, total=False):
