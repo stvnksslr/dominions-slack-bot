@@ -14,9 +14,13 @@ TORTOISE_ORM = {
             "default_connection": "default",
         },
     },
+    # pin the timezone: auto_now writes ORM-side timestamps, QuerySet.update() leaves them to MySQL
+    "use_tz": True,
+    "timezone": "UTC",
 }
 
 
 async def init() -> None:
     logger.info("connecting to db.....")
-    await Tortoise.init(db_url=DB_URI, modules={"models": ["src.models.db"]})
+    # one config for both aerich and the runtime, so they can't drift apart
+    await Tortoise.init(config=TORTOISE_ORM)

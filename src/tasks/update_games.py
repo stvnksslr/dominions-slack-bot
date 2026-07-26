@@ -1,29 +1,27 @@
+from os import getenv
+
 from loguru import logger
 from slack_sdk.errors import SlackApiError
 
-from src.controllers.lobby_details import (
-    fetch_lobby_details_from_web,
-    turn_command_wrapper,
-)
+from src.controllers.lobby_details import fetch_lobby_details_from_web, get_lobby_details
 from src.models.db import Game, Player
 from src.utils.slack_manager import client
 
-
-class UpdateError(Exception):
-    pass
+TURN_UPDATE_CHANNEL = getenv("TURN_UPDATE_CHANNEL", "#grog_hole")
 
 
 class GameDetailsFetchError(Exception):
     pass
 
 
-async def send_turn_update() -> None:
-    formatted_response = await turn_command_wrapper()
-    channel_id = "#grog_hole"
-    try:
-        await client.chat_postMessage(channel=channel_id, text="status", blocks=formatted_response)
-    except SlackApiError as e:
-        logger.error(e)
+async def send_turn_update(game: Game) -> None:
+    """Post the status of the game whose turn just advanced — not whichever game happens to be primary."""
+    formatted_response = await get_lobby_details(game.name, use_db=True)
+    await client.chat_postMessage(
+        channel=TURN_UPDATE_CHANNEL,
+        text=f"New turn in {game.nickname or game.name}",
+        blocks=formatted_response,
+    )
 
 
 async def update_games_wrapper() -> None:
@@ -36,26 +34,33 @@ async def update_games_wrapper() -> None:
             if game_details is None:
                 raise GameDetailsFetchError(f"Failed to fetch details for game {game.name}")
 
-            logger.info("updating", f"fetched turn {game_details.turn}")
+            logger.info(f"fetched turn {game_details.turn} for {game.name}")
 
             for player in game_details.player_status:
-                logger.debug(f"updating player {player.name}")
-                await Player.filter(game=game, nation=player.name).update(turn_status=player.turn_status)
+                updated = await Player.filter(game=game, nation=player.name).update(turn_status=player.turn_status)
+                if not updated:
+                    logger.warning(f"no row matched nation '{player.name}' in {game.name} — status left stale")
 
-            if game.turn < int(game_details.turn):
+            new_turn = int(game_details.turn)
+            if game.turn < new_turn:
                 logger.info("new turn detected")
-                await Game.filter(name=game.name).update(turn=game_details.turn, time_left=game_details.time_left)
-                await send_turn_update()
+                await Game.filter(id=game.id).update(turn=new_turn, time_left=game_details.time_left)
+                try:
+                    await send_turn_update(game)
+                except SlackApiError, OSError:
+                    # rewind so the next cycle sees the turn as new again and retries the notification
+                    logger.exception(f"turn notification failed for {game.name}; rewinding turn to retry")
+                    await Game.filter(id=game.id).update(turn=game.turn)
             else:
-                await Game.filter(name=game.name).update(time_left=game_details.time_left)
+                await Game.filter(id=game.id).update(time_left=game_details.time_left)
 
             # Check if the turn is finished
             if game_details.time_left and game_details.time_left.lower() == "finished":
                 logger.info(f"Turn finished for game {game.name}. Setting game to inactive.")
-                await Game.filter(name=game.name).update(active=False, primary_game=False)
+                await Game.filter(id=game.id).update(active=False, primary_game=False)
 
             logger.info("update complete")
         except GameDetailsFetchError as e:
             logger.error(f"Error fetching game details: {e}")
-        except Exception as e:
-            logger.error(f"Unexpected error updating game {game.name}: {e}")
+        except Exception:
+            logger.exception(f"Unexpected error updating game {game.name}")

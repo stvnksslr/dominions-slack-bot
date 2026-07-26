@@ -57,24 +57,6 @@ def create_info_block(message: str, details: str | None = None) -> list[dict[str
     return blocks
 
 
-def create_warning_block(message: str, details: str | None = None) -> list[dict[str, Any]]:
-    """
-    Create a warning message block with optional details.
-
-    :param message: Warning message
-    :param details: Optional additional details
-    :return: List of Slack blocks for warning message
-    """
-    blocks: list[dict[str, Any]] = [
-        {"type": "section", "text": {"type": "mrkdwn", "text": f":warning: *{message}*"}},
-    ]
-
-    if details:
-        blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": details}})
-
-    return blocks
-
-
 def get_emoji(turn_status: str) -> str:
     """
     This function takes a player's turn status as an argument and returns an emoji that corresponds to the status.
@@ -94,27 +76,6 @@ def get_emoji(turn_status: str) -> str:
             return ":x:"
         case _:
             return ":gungoose:"
-
-
-def create_nations_block(player_list: list) -> list:
-    """
-    Attempts to create and format a slack modal
-
-    :param player_list:
-    :return:
-    """
-    player_blocks = []
-
-    for player in player_list:
-        player.turn_emoji = get_emoji(player.turn_status)
-
-        nation_section = {
-            "type": "section",
-            "text": {"type": "mrkdwn", "text": f"{player.turn_emoji} - *{player.name.strip()}*"},
-        }
-
-        player_blocks.append(nation_section)
-    return player_blocks
 
 
 def create_game_details_block(lobby_details: LobbyDetails, game_name: str | None = None) -> list[Any]:

@@ -7,8 +7,5 @@ from .base import Command
 
 class TurnStatusCommand(Command):
     async def execute(self) -> list[Any]:
-        try:
-            turn_status = await turn_command_wrapper()
-            return turn_status
-        except ValueError as e:
-            return [{"type": "section", "text": {"type": "mrkdwn", "text": str(e)}}]
+        # turn_command_wrapper already renders its own failures as blocks
+        return await turn_command_wrapper()

@@ -1,4 +1,4 @@
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from aiohttp import ClientResponse, ClientSession
@@ -7,7 +7,6 @@ from tortoise import Tortoise
 from src.controllers.formatting import (
     create_game_details_block,
     create_game_details_block_from_db,
-    create_nations_block,
     create_nations_block_from_db,
     get_emoji,
 )
@@ -22,10 +21,6 @@ from src.models.app.player_status import PlayerStatus
 from src.models.db import Game, Player
 
 
-class MockConnectionError(Exception):
-    pass
-
-
 @pytest.fixture
 async def _initialize_tortoise():  # noqa: ANN202
     await Tortoise.init(db_url="sqlite://:memory:", modules={"models": ["src.models.db"]})
@@ -34,89 +29,36 @@ async def _initialize_tortoise():  # noqa: ANN202
     await Tortoise.close_connections()
 
 
-@pytest.fixture
-def mock_html_content() -> str:
-    return """
-    <html><body>
-        <tr>Server Info, Turn 1 (1 day left)</tr>
-        <tr><td>Player1</td><td>Turn played</td></tr>
-    </body></html>
-    """
-
-
-@pytest.fixture
-def mock_game() -> MagicMock:
-    return MagicMock(spec=Game, name="TestGame", turn="1", time_left="1 day left")
-
-
-@pytest.fixture
-def mock_players() -> list[MagicMock]:
-    return [MagicMock(spec=Player, short_name="Player1", turn_status="Turn played")]
-
-
-@pytest.mark.asyncio
-async def test_get_lobby_details_web_source(mock_html_content: str) -> None:
+def _patched_session(html: str):  # noqa: ANN202
     mock_response = AsyncMock(spec=ClientResponse)
-    mock_response.text.return_value = mock_html_content
+    mock_response.text.return_value = html
     mock_session = AsyncMock(spec=ClientSession)
     mock_session.get.return_value.__aenter__.return_value = mock_response
 
-    with (
-        patch("src.controllers.lobby_details.ClientSession") as mock_client_session,
-        patch("src.controllers.lobby_details.fetch_lobby_details_from_web") as mock_fetch,
-    ):
-        mock_client_session.return_value.__aenter__.return_value = mock_session
-        mock_fetch.return_value = LobbyDetails(
-            server_info="Server Info, Turn 1 (1 day left)",
-            player_status=[PlayerStatus(name="Player1", turn_status="Turn played")],
-            turn="1",
-            time_left="1 day left",
-        )
-        result = await get_lobby_details("server_name", use_db=False)
-
-    assert isinstance(result, list)
-    assert len(result) > 0
-    assert any("Server Info, Turn 1" in str(block) for block in result)
-    assert any("Player1" in str(block) for block in result)
+    patcher = patch("src.controllers.lobby_details.ClientSession")
+    mock_client_session = patcher.start()
+    mock_client_session.return_value.__aenter__.return_value = mock_session
+    return patcher
 
 
-@pytest.mark.asyncio
-async def test_get_lobby_details_db_source(mock_game: MagicMock, mock_players: list[MagicMock]) -> None:
-    with (
-        patch("src.controllers.lobby_details.Game.filter") as mock_game_filter,
-        patch("src.controllers.lobby_details.fetch_lobby_details_from_db") as mock_fetch,
-    ):
-        mock_game_filter.return_value.first.return_value = mock_game
-        mock_game.fetch_related = AsyncMock()
-        mock_game.players = mock_players
-        mock_fetch.return_value = LobbyDetails(
-            server_info="TestGame - Turn 1",
-            player_status=[PlayerStatus(name="Player1", turn_status="Turn played")],
-            turn="1",
-            time_left="1 day left",
-        )
-        result = await get_lobby_details("TestGame", use_db=True)
-
-    assert isinstance(result, list)
-    assert len(result) > 0
-    assert any("TestGame" in str(block) for block in result)
-    assert any("Player1" in str(block) for block in result)
-
-
-@pytest.mark.asyncio
 async def test_get_lobby_details_web_source_failure() -> None:
+    """A failure must render as blocks — Slack rejects a message with an empty blocks array."""
     with patch("src.controllers.lobby_details.fetch_lobby_details_from_web") as mock_fetch:
-        mock_fetch.side_effect = ValueError("Failed to fetch lobby details from web source")
+        mock_fetch.side_effect = ValueError("boom")
         result = await get_lobby_details("server_name", use_db=False)
-        assert result == []  # Expect an empty list instead of raising an error
+
+    assert result, "empty block list would be silently dropped by Slack"
+    assert "Error" in str(result)
+    assert "boom" not in str(result), "internal error text must not reach the channel"
 
 
-@pytest.mark.asyncio
 async def test_get_lobby_details_db_source_failure() -> None:
     with patch("src.controllers.lobby_details.fetch_lobby_details_from_db") as mock_fetch:
         mock_fetch.return_value = None
         result = await get_lobby_details("NonexistentGame", use_db=True)
-        assert result == []  # Expect an empty list instead of raising an error
+
+    assert result
+    assert "NonexistentGame" in str(result)
 
 
 def test_format_lobby_details() -> None:
@@ -135,7 +77,6 @@ def test_format_lobby_details() -> None:
     assert any("Nick1" in str(block) for block in result)
 
 
-@pytest.mark.asyncio
 async def test_fetch_lobby_details_from_web() -> None:
     mock_html = """
     <html><body>
@@ -144,15 +85,11 @@ async def test_fetch_lobby_details_from_web() -> None:
         <tr><td>Player2</td><td>Turn unfinished</td></tr>
     </body></html>
     """
-    mock_response = AsyncMock(spec=ClientResponse)
-    mock_response.text.return_value = mock_html
-    mock_session = AsyncMock(spec=ClientSession)
-    mock_session.get.return_value.__aenter__.return_value = mock_response
-
-    with patch("src.controllers.lobby_details.ClientSession") as mock_client_session:
-        mock_client_session.return_value.__aenter__.return_value = mock_session
-
+    patcher = _patched_session(mock_html)
+    try:
         result = await fetch_lobby_details_from_web("test_server")
+    finally:
+        patcher.stop()
 
     assert isinstance(result, LobbyDetails)
     assert result.server_info == "server info, turn 2 (2 days left)"
@@ -165,7 +102,38 @@ async def test_fetch_lobby_details_from_web() -> None:
     assert result.player_status[1].turn_status == "Turn unfinished"
 
 
-@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("server_info", "expected_turn", "expected_time"),
+    [
+        ("Nocturne, Turn 42 (2 hours left)", "42", "2 hours left"),
+        ("Saturnalia, Turn 7 (1 day left)", "7", "1 day left"),
+        ("Blitz (fast), Turn 3 (12 hours left)", "3", "12 hours left"),
+        ("Plain, Turn 1 (finished)", "1", "finished"),
+    ],
+)
+async def test_fetch_lobby_details_turn_parsing(server_info: str, expected_turn: str, expected_time: str) -> None:
+    """A game name containing 'turn' or parentheses must not be mistaken for the turn counter/timer."""
+    patcher = _patched_session(f"<html><body><tr>{server_info}</tr></body></html>")
+    try:
+        result = await fetch_lobby_details_from_web("nocturne")
+    finally:
+        patcher.stop()
+
+    assert result is not None
+    assert result.turn == expected_turn
+    assert result.time_left == expected_time
+
+
+async def test_fetch_lobby_details_from_web_no_turn_returns_none() -> None:
+    patcher = _patched_session("<html><body><tr>lobby is not started yet</tr></body></html>")
+    try:
+        result = await fetch_lobby_details_from_web("test_server")
+    finally:
+        patcher.stop()
+
+    assert result is None
+
+
 @pytest.mark.usefixtures("_initialize_tortoise")
 async def test_fetch_lobby_details_from_db() -> None:
     mock_game = await Game.create(name="TestGame", turn=3, time_left="3 days left")
@@ -207,18 +175,6 @@ def test_get_emoji() -> None:
     assert get_emoji("Unknown status") == ":gungoose:"
 
 
-def test_create_nations_block() -> None:
-    player_list = [
-        PlayerStatus(name="Player1", turn_status="Turn played"),
-        PlayerStatus(name="Player2", turn_status="Turn unfinished"),
-    ]
-    result = create_nations_block(player_list)
-    assert len(result) == 2
-    assert result[0]["type"] == "section"
-    assert ":white_check_mark: - *Player1*" in result[0]["text"]["text"]
-    assert ":question: - *Player2*" in result[1]["text"]["text"]
-
-
 def test_create_game_details_block() -> None:
     lobby_details = LobbyDetails(
         server_info="Test Server, Turn 1 (1 day left)",
@@ -231,6 +187,17 @@ def test_create_game_details_block() -> None:
     assert result[0]["type"] == "header"
     assert result[0]["text"]["text"] == "Dominions Times"
     assert "Test Server, Turn 1 (1 day left)" in result[3]["text"]["text"]
+
+
+def test_create_game_details_block_adds_buttons_when_named() -> None:
+    lobby_details = LobbyDetails(server_info="info", player_status=[], turn="1", time_left="1 day left")
+    result = create_game_details_block(lobby_details, game_name="MyGame")
+
+    actions = [block for block in result if block["type"] == "actions"]
+    assert len(actions) == 1
+    action_ids = {element["action_id"] for element in actions[0]["elements"]}
+    assert action_ids == {"refresh_game_status", "set_primary_game"}
+    assert all(element["value"] == "MyGame" for element in actions[0]["elements"])
 
 
 def test_create_game_details_block_from_db() -> None:

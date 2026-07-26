@@ -1,6 +1,5 @@
 from asyncio import gather, run, sleep
 from collections.abc import Awaitable, Callable
-from json import JSONDecodeError, loads
 from os import getenv
 from random import choice
 from re import compile as re_compile
@@ -9,17 +8,12 @@ from typing import Any, NoReturn, TypedDict, cast
 import pyroscope
 from loguru import logger
 from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
+from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
 from uvloop import install as install_uvloop
 
 from src.controllers.command_parser import command_parser_wrapper
-from src.handlers import (
-    handle_add_game_modal_submit,
-    handle_refresh_game_status,
-    handle_remove_game_modal_submit,
-    handle_set_primary_game,
-    handle_set_primary_modal_submit,
-)
+from src.handlers import handle_refresh_game_status, handle_set_primary_game
 from src.responders import grog_response_list, mad_reactions_list
 from src.tasks.update_games import update_games_wrapper
 from src.utils.constants import SLACK_APP_TOKEN
@@ -48,18 +42,6 @@ class SlackSayResponse(TypedDict, total=False):
     blocks: list[dict[str, Any]]
 
 
-async def send_response(
-    say: Callable[[SlackSayResponse], Awaitable[Any]], response: str | list[dict[str, Any]]
-) -> None:
-    """
-    Helper function to send a response, handling both string and Slack block formats.
-    """
-    if isinstance(response, str):
-        await say(cast(SlackSayResponse, {"text": response}))
-    else:
-        await say(cast(SlackSayResponse, {"blocks": response, "text": "Response (see blocks for formatted content)"}))
-
-
 @app.message(keyword=re_compile(pattern="(?i)grog"))
 async def grog_responder(say: Callable[[SlackSayResponse], Awaitable[Any]]) -> None:
     """
@@ -77,37 +59,36 @@ async def mad_reactor(message: dict[str, Any], client: AsyncWebClient) -> None:
     """
     random_mad = choice(seq=mad_reactions_list)
 
-    await client.reactions_add(
-        channel=message["channel"],
-        timestamp=message["ts"],
-        name=random_mad,
-    )
+    try:
+        await client.reactions_add(
+            channel=message["channel"],
+            timestamp=message["ts"],
+            name=random_mad,
+        )
+    except SlackApiError as e:
+        # already_reacted on a repeat pick, or invalid_name if the workspace lacks the custom emoji
+        logger.warning(f"could not add reaction '{random_mad}': {e}")
 
 
 @app.command(command="/dom")
-async def handle_add_game_command(
-    ack: Callable[[], Awaitable[None]], say: Callable[[SlackSayResponse], Awaitable[Any]], command: dict[str, Any]
+async def handle_dom_command(
+    ack: Callable[[], Awaitable[None]],
+    say: Callable[[SlackSayResponse], Awaitable[Any]],
+    respond: Callable,
+    command: dict[str, Any],
 ) -> None:
     """
     This function handles the '/dom' command in the Slack bot.
     """
-    response = await command_parser_wrapper(command=command["text"])
+    # ack first: Slack gives us 3 seconds, and parsing can involve a scrape of the dominions server
     await ack()
 
-    try:
-        # Attempt to parse the response as JSON
-        parsed_response = loads(response)
-        if isinstance(parsed_response, list):
-            await say(
-                cast(
-                    SlackSayResponse, {"blocks": parsed_response, "text": "Response (see blocks for formatted content)"}
-                )
-            )
-        else:
-            await say(cast(SlackSayResponse, {"text": response}))
-    except JSONDecodeError:
-        # If it's not valid JSON, treat it as a plain string
-        await say(cast(SlackSayResponse, {"text": response}))
+    blocks, ephemeral = await command_parser_wrapper(command=command["text"])
+
+    if ephemeral:
+        await respond(blocks=blocks, text="Response (see blocks for formatted content)")
+    else:
+        await say(cast(SlackSayResponse, {"blocks": blocks, "text": "Response (see blocks for formatted content)"}))
 
 
 @app.event(event="message")
@@ -119,50 +100,27 @@ async def handle_message_events() -> None:
 
 # Interactive component handlers
 @app.action({"action_id": "refresh_game_status"})
-async def refresh_button_handler(
-    ack: Callable[[], Awaitable[None]], body: dict[str, Any], say: Callable[[SlackSayResponse], Awaitable[Any]]
-) -> None:
+async def refresh_button_handler(ack: Callable[[], Awaitable[None]], body: dict[str, Any], respond: Callable) -> None:
     """Handle refresh game status button clicks"""
-    await handle_refresh_game_status(ack, body, say)
+    await handle_refresh_game_status(ack, body, respond)
 
 
 @app.action({"action_id": "set_primary_game"})
 async def set_primary_button_handler(
-    ack: Callable[[], Awaitable[None]], body: dict[str, Any], say: Callable[[SlackSayResponse], Awaitable[Any]]
+    ack: Callable[[], Awaitable[None]], body: dict[str, Any], respond: Callable
 ) -> None:
     """Handle set primary game button clicks"""
-    await handle_set_primary_game(ack, body, say)
-
-
-# Modal view submission handlers
-@app.view("remove_game_modal_submit")
-async def remove_game_modal_submit_handler(
-    ack: Callable[[], Awaitable[None]], body: dict[str, Any], client: AsyncWebClient
-) -> None:
-    """Handle remove game modal submission"""
-    await handle_remove_game_modal_submit(ack, body, client)
-
-
-@app.view("set_primary_modal_submit")
-async def set_primary_modal_submit_handler(
-    ack: Callable[[], Awaitable[None]], body: dict[str, Any], client: AsyncWebClient
-) -> None:
-    """Handle set primary game modal submission"""
-    await handle_set_primary_modal_submit(ack, body, client)
-
-
-@app.view("add_game_modal_submit")
-async def add_game_modal_submit_handler(
-    ack: Callable[[], Awaitable[None]], body: dict[str, Any], client: AsyncWebClient
-) -> None:
-    """Handle add game modal submission"""
-    await handle_add_game_modal_submit(ack, body, client)
+    await handle_set_primary_game(ack, body, respond)
 
 
 async def periodic_task() -> NoReturn:
     while True:
         logger.info("Running task...")
-        await update_games_wrapper()
+        try:
+            await update_games_wrapper()
+        except Exception:
+            # never let a DB blip escape into gather() — that would take the slack handler down with it
+            logger.exception("game update cycle failed")
         await sleep(delay=900)  # wait for 15 mins
 
 

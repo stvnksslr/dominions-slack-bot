@@ -6,12 +6,3 @@ class PlayerStatus(BaseModel):
     turn_status: str
     turn_emoji: str | None = None
     nickname: str | None = None
-
-    def short_name(self) -> str:
-        return self.name.split(sep=",")[0].lower().strip()
-
-
-class GameDetails(BaseModel):
-    turn: int
-    time_left: str
-    player_status: list[PlayerStatus]

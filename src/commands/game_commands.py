@@ -16,26 +16,35 @@ if TYPE_CHECKING:
 
 class AddGameCommand(Command):
     async def execute(self, game_name: str) -> str:
-        existing_game: Game | None = await Game.filter(name=game_name, active=True).first()
-        if existing_game:
+        # match on name alone: remove is a soft delete, so an inactive row must be reused rather than duplicated
+        existing_game: Game | None = await Game.filter(name=game_name).order_by("-created_at").first()
+        if existing_game and existing_game.active:
             return dumps(
                 create_error_block(f"Game '{game_name}' already exists", "Use `/dom game list` to see all games")
             )
 
-        try:
-            game_details: LobbyDetails | None = await fetch_lobby_details_from_web(game_name=game_name)
-            if game_details is None:
-                return dumps(
-                    create_error_block(
-                        f"Failed to fetch game details for '{game_name}'",
-                        "Check that the game name is correct and exists on the Dominions server",
-                    )
+        game_details: LobbyDetails | None = await fetch_lobby_details_from_web(game_name=game_name)
+        if game_details is None:
+            return dumps(
+                create_error_block(
+                    f"Failed to fetch game details for '{game_name}'",
+                    "Check that the game name is correct and exists on the Dominions server",
+                )
+            )
+
+        async with in_transaction():
+            if existing_game:
+                # reactivate and re-seed, so add/remove/add doesn't leave two rows with the same name
+                await Game.filter(id=existing_game.id).update(
+                    active=True, turn=game_details.turn, time_left=game_details.time_left
+                )
+                await Player.filter(game=existing_game).delete()
+                current_game = existing_game
+            else:
+                current_game = await Game.create(
+                    name=game_name, turn=game_details.turn, time_left=game_details.time_left
                 )
 
-            # Create the game first
-            current_game = await Game.create(name=game_name, turn=game_details.turn, time_left=game_details.time_left)
-
-            # Create players with the game reference
             for player in game_details.player_status:
                 await Player.create(
                     nation=player.name.strip(),
@@ -44,17 +53,15 @@ class AddGameCommand(Command):
                     game=current_game,  # Set the game reference directly
                 )
 
-            return dumps(
-                create_success_block(
-                    "Game Added Successfully",
-                    f"• Game: *{game_name}*\n"
-                    f"• Players: {len(game_details.player_status)} nations tracked\n"
-                    f"• Turn: {game_details.turn}\n"
-                    f"• Next update: ~15 minutes",
-                )
+        return dumps(
+            create_success_block(
+                "Game Added Successfully",
+                f"• Game: *{game_name}*\n"
+                f"• Players: {len(game_details.player_status)} nations tracked\n"
+                f"• Turn: {game_details.turn}\n"
+                f"• Next update: ~15 minutes",
             )
-        except Exception as e:
-            return dumps(create_error_block(f"Error adding game: {e!s}"))
+        )
 
 
 class RemoveGameCommand(Command):
@@ -65,22 +72,25 @@ class RemoveGameCommand(Command):
                 create_error_block(f"Game '{game_name}' not found", "Use `/dom game list` to see active games")
             )
 
-        await Game.filter(name=game_name).update(active=False)
+        # by id, not name: names aren't unique, and primary must be cleared or /dom turn keeps serving it
+        await Game.filter(id=game.id).update(active=False, primary_game=False)
         return dumps(
             create_success_block("Game Removed", f"*{game_name}* has been deactivated and will no longer be tracked")
         )
 
 
 class NicknameGameCommand(Command):
-    async def execute(self, game_name: str, nickname: str) -> str:
+    async def execute(self, game_name: str, nickname: str, *rest: str) -> str:
         game = await Game.filter(name=game_name, active=True).first()
         if not game:
             return dumps(
                 create_error_block(f"Game '{game_name}' not found", "Use `/dom game list` to see active games")
             )
 
-        await Game.filter(name=game_name).update(nickname=nickname)
-        return dumps(create_success_block("Nickname Set", f"*{game_name}* will now display as *{nickname}*"))
+        # accept multi-word nicknames — the command text is split on whitespace upstream
+        joined = " ".join((nickname, *rest))
+        await Game.filter(id=game.id).update(nickname=joined)
+        return dumps(create_success_block("Nickname Set", f"*{game_name}* will now display as *{joined}*"))
 
 
 class ListGamesCommand(Command):
@@ -97,7 +107,7 @@ class ListGamesCommand(Command):
             display_name = game.nickname or game.name
             primary_badge = " :star:" if game.primary_game else ""
             turn_info = f"Turn {game.turn}" if game.turn else "Turn: Unknown"
-            time_info = game.time_left if game.time_left else "Time remaining: Unknown"
+            time_info = game.time_left or "Time remaining: Unknown"
 
             game_text = f"*{display_name}*{primary_badge}\n• Game ID: `{game.name}`\n• {turn_info}\n• {time_info}"
 
@@ -140,6 +150,7 @@ class SetPrimaryGameCommand(Command):
 
 class SetGameStatusCommand(Command):
     async def execute(self, game_name: str, status: str) -> str:
+        status = status.lower()
         if status not in ["active", "inactive"]:
             return dumps(
                 create_error_block(
@@ -149,7 +160,7 @@ class SetGameStatusCommand(Command):
                 )
             )
 
-        game = await Game.filter(name=game_name).first()
+        game = await Game.filter(name=game_name).order_by("-created_at").first()
         if not game:
             return dumps(create_error_block(f"Game '{game_name}' not found", "Use `/dom game list` to see all games"))
 

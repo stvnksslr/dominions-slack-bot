@@ -1,11 +1,13 @@
+import re
 from typing import Any
 
 import bs4
-from aiohttp import ClientError, ClientSession
+from aiohttp import ClientError, ClientSession, ClientTimeout
 from bs4 import BeautifulSoup
 from loguru import logger
 
 from src.controllers.formatting import (
+    create_error_block,
     create_game_details_block,
     create_game_details_block_from_db,
     create_nations_block_from_db,
@@ -15,15 +17,21 @@ from src.models.app.player_status import PlayerStatus
 from src.models.db import Game
 from src.models.db.players import Player
 
+REQUEST_TIMEOUT = ClientTimeout(total=15)
+
+# requires whitespace + digits, so a game named "nocturne" or "saturnalia" can't match
+TURN_PATTERN = re.compile(r"turn\s+(\d+)")
+
 
 def format_url(game_name: str) -> str:
     return f"http://ulm.illwinter.com/dom6/server/{game_name}.html"
 
 
 async def fetch_lobby_details_from_web(game_name: str) -> LobbyDetails | None:
+    """Scrape a game's status page. Returns None on any failure — never raises."""
     formatted_url = format_url(game_name)
     try:
-        async with ClientSession() as session, session.get(url=formatted_url) as response:
+        async with ClientSession(timeout=REQUEST_TIMEOUT) as session, session.get(url=formatted_url) as response:
             html_content = await response.text()
 
         soup = BeautifulSoup(html_content, "html.parser")
@@ -34,16 +42,18 @@ async def fetch_lobby_details_from_web(game_name: str) -> LobbyDetails | None:
             return None
 
         server_info = first_row.text.strip().lower()
-        turn_parts = server_info.split("turn")
-        if len(turn_parts) < 2:
+        # page reads "<game name>, turn N (time left)" — take the last match, the game name comes first
+        turn_matches = TURN_PATTERN.findall(server_info)
+        if not turn_matches:
             logger.error(f"Failed to extract turn information for game {game_name}")
             return None
 
-        turn = turn_parts[1].split()[0]
+        turn = turn_matches[-1]
 
         time_left: str | None = None
         if "(" in server_info and ")" in server_info:
-            time_left = server_info.split("(")[1].split(")")[0]
+            # rsplit so a game named "Blitz (fast)" doesn't shadow the real timer
+            time_left = server_info.rsplit("(", 1)[1].split(")")[0]
 
         player_status_list = []
         for row in soup.find_all("tr")[1:]:
@@ -60,16 +70,17 @@ async def fetch_lobby_details_from_web(game_name: str) -> LobbyDetails | None:
             time_left=time_left,
         )
 
-    except ClientError as e:
+    except (ClientError, TimeoutError) as e:
         logger.error(f"HTTP request failed for game {game_name}: {e}")
     except (IndexError, ValueError) as e:
         logger.error(f"Failed to extract required information from HTML for game {game_name}: {e}")
 
-    raise ValueError(f"Failed to fetch lobby details from web source for game {game_name}")
+    return None
 
 
 async def fetch_lobby_details_from_db(game_name: str) -> LobbyDetails | None:
-    game = await Game.filter(name=game_name).first()
+    # newest row wins: names aren't unique, so a re-added game must not resolve to a stale row
+    game = await Game.filter(name=game_name).order_by("-created_at").first()
     if game is None:
         logger.error(f"Game '{game_name}' not found in the database")
         return None
@@ -107,6 +118,7 @@ def format_lobby_details(lobby_details: LobbyDetails, use_db: bool = False, game
 
 
 async def get_lobby_details(game_name: str, use_db: bool = False) -> list[Any]:
+    """Always returns a non-empty block list — Slack rejects a message with zero blocks."""
     try:
         if use_db:
             fetch_function = fetch_lobby_details_from_db
@@ -119,18 +131,24 @@ async def get_lobby_details(game_name: str, use_db: bool = False) -> list[Any]:
 
         if lobby_details is None:
             logger.error(f"No lobby details found for game '{game_name}'")
-            return []
+            return create_error_block(
+                f"No details found for game '{game_name}'",
+                "Check the name with `/dom game list`, or confirm the game exists on the Dominions server",
+            )
 
         return format_lobby_details(lobby_details, use_db, game_name)
 
-    except Exception as e:
-        logger.error(f"Error fetching lobby details for game '{game_name}': {e!s}")
-        return []
+    except Exception:
+        logger.exception(f"Error fetching lobby details for game '{game_name}'")
+        return create_error_block(
+            f"Could not load status for '{game_name}'",
+            "The Dominions server may be unreachable. Try again in a moment.",
+        )
 
 
 async def turn_command_wrapper() -> list[Any]:
     current_game = await Game.filter(primary_game=True).first()
     if current_game is None:
         logger.error("No primary game found")
-        raise ValueError("No primary game found")
+        return create_error_block("No primary game set", "Set one with `/dom game primary [game_name]`")
     return await get_lobby_details(current_game.name, use_db=True)

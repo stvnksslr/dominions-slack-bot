@@ -17,16 +17,22 @@ A Slack bot for managing and tracking Dominions 6 games, providing updates and a
 
 ## Commands
 
-* `/dom`: Main command for interacting with the bot
+`/dom` is the only slash command. Everything else is a subcommand of it.
+
+* `/dom help [game|player|check|turn]`: Show usage
+* `/dom check <game_name>`: Fetch a game's current status from the website (posted to the channel)
+* `/dom turn`: Show the cached status for the primary game (posted to the channel)
+* `/dom player <game_name> <nation> <player_name>`: Associate a player name with a nation
+* `/dom game ...`: Manage tracked games
   * `game add <game_name>`: Add a new game to track
   * `game remove <game_name>`: Remove a game from tracking
   * `game nickname <game_name> <nickname>`: Set a nickname for a game
   * `game list`: List all active games
-  * `game primary <game_name>`: Set a game as the primary game
+  * `game primary <game_name>`: Set the game `/dom turn` reports on
   * `game status <game_name> <active|inactive>`: Set a game's active status
-* `/check <game_name>`: Fetch the current status of a game from the website
-* `/turn`: Display the current turn status for the primary game
-* `/dom player <game_name> <nation> <player_name>`: Associate a player name with a nation in a specific game
+
+Help, errors and confirmations are ephemeral — only the person who ran the command sees them.
+Only `/dom check` and `/dom turn` post to the channel.
 
 ## Project Structure
 
@@ -52,11 +58,14 @@ A Slack bot for managing and tracking Dominions 6 games, providing updates and a
    * `SLACK_APP_TOKEN`: Your Slack app token
    * `DB_URI`: Database connection URI
    * `LOG_LEVEL`: Logging level (default: INFO)
+   * `TURN_UPDATE_CHANNEL`: Channel for turn notifications (default: `#grog_hole`)
+
+   The first three are required; the bot exits at startup naming any that are missing.
 
 4. Run the bot:
 
    ```sh
-   uv run src.main
+   uv run python -m src.main
    ```
 
 ## Testing
