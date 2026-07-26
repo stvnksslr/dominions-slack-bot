@@ -9,8 +9,7 @@ from loguru import logger
 from src.controllers.formatting import (
     create_error_block,
     create_game_details_block,
-    create_game_details_block_from_db,
-    create_nations_block_from_db,
+    create_nations_block,
 )
 from src.models.app.lobby_details import LobbyDetails
 from src.models.app.player_status import PlayerStatus
@@ -102,18 +101,31 @@ async def fetch_lobby_details_from_db(game_name: str) -> LobbyDetails | None:
     )
 
 
-def format_lobby_details(lobby_details: LobbyDetails, use_db: bool = False, game_name: str | None = None) -> list[dict]:
-    if use_db:
-        game_details_block = create_game_details_block_from_db(lobby_details)
-    else:
-        game_details_block = create_game_details_block(lobby_details, game_name)
+async def fetch_lobby_details_live(game_name: str) -> LobbyDetails | None:
+    """Live scrape, with player nicknames filled in from the tracked game so a refresh doesn't drop them."""
+    lobby_details = await fetch_lobby_details_from_web(game_name)
+    if lobby_details is None:
+        return None
 
-    nations_block = create_nations_block_from_db(lobby_details.player_status)
+    game = await Game.filter(name=game_name).order_by("-created_at").first()
+    if game is None:
+        return lobby_details
+
+    nicknames = {player.nation: player.player_name for player in await Player.filter(game=game)}
+    for player in lobby_details.player_status:
+        player.nickname = nicknames.get(player.name)
+
+    return lobby_details
+
+
+def format_lobby_details(lobby_details: LobbyDetails, use_db: bool = False, game_name: str | None = None) -> list[dict]:
+    source = "Cached · updates every 15 minutes" if use_db else "Live from the Dominions server"
 
     logger.debug("format_lobby_details run")
     return [
-        *game_details_block,
-        *nations_block,
+        *create_game_details_block(lobby_details, game_name),
+        *create_nations_block(lobby_details.player_status),
+        {"type": "context", "elements": [{"type": "mrkdwn", "text": source}]},
     ]
 
 
@@ -124,7 +136,7 @@ async def get_lobby_details(game_name: str, use_db: bool = False) -> list[Any]:
             fetch_function = fetch_lobby_details_from_db
             logger.debug("Using database to fetch lobby details")
         else:
-            fetch_function = fetch_lobby_details_from_web
+            fetch_function = fetch_lobby_details_live
             logger.debug("Using web scraping to fetch lobby details")
 
         lobby_details = await fetch_function(game_name)

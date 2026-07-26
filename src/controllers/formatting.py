@@ -34,7 +34,7 @@ def create_error_block(message: str, suggestion: str | None = None) -> list[dict
     ]
 
     if suggestion:
-        blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": f"💡 *Suggestion*\n{suggestion}"}})
+        blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": f":bulb: *Suggestion*\n{suggestion}"}})
 
     return blocks
 
@@ -78,35 +78,31 @@ def get_emoji(turn_status: str) -> str:
             return ":gungoose:"
 
 
-def create_game_details_block(lobby_details: LobbyDetails, game_name: str | None = None) -> list[Any]:
+def create_game_details_block(lobby_details: LobbyDetails, game_name: str | None = None) -> list[dict[str, Any]]:
     """
-    Attempt to format general lobby details from web (LIVE data)
+    Header card for a game status message — identical whether the data came from the web or the cache.
 
     :param lobby_details: Game lobby details
-    :param game_name: Name of the game (for action buttons)
+    :param game_name: Name of the game; when known, action buttons are attached
     :return: List of Slack blocks
     """
-    formatted_msg = [
+    # server_info is the raw scraped line — only used when we don't know the game's real name
+    title = game_name or lobby_details.server_info
+    subtitle = f"Turn {lobby_details.turn}"
+    if lobby_details.time_left:
+        subtitle += f" · {lobby_details.time_left}"
+
+    formatted_msg: list[dict[str, Any]] = [
         {
             "type": "header",
             "text": {"type": "plain_text", "text": "Dominions Times"},
         },
-        {"type": "divider"},
         {
             "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": " :freak_lord: *Update* :freak_lord: ",
-            },
+            "text": {"type": "mrkdwn", "text": f":freak_lord: *{title}* :freak_lord:\n{subtitle}"},
         },
-        {
-            "type": "section",
-            "text": {"type": "mrkdwn", "text": f"{lobby_details.server_info}"},
-        },
-        {"type": "divider"},
     ]
 
-    # Add action buttons if game_name is provided
     if game_name:
         formatted_msg.append(
             {
@@ -114,14 +110,14 @@ def create_game_details_block(lobby_details: LobbyDetails, game_name: str | None
                 "elements": [
                     {
                         "type": "button",
-                        "text": {"type": "plain_text", "text": "🔄 Refresh"},
+                        "text": {"type": "plain_text", "text": ":arrows_counterclockwise: Refresh", "emoji": True},
                         "value": game_name,
                         "action_id": "refresh_game_status",
                         "style": "primary",
                     },
                     {
                         "type": "button",
-                        "text": {"type": "plain_text", "text": "⭐ Set Primary"},
+                        "text": {"type": "plain_text", "text": ":star: Set Primary", "emoji": True},
                         "value": game_name,
                         "action_id": "set_primary_game",
                     },
@@ -129,60 +125,26 @@ def create_game_details_block(lobby_details: LobbyDetails, game_name: str | None
             }
         )
 
+    formatted_msg.append({"type": "divider"})
     formatted_msg.append({"type": "section", "text": {"type": "mrkdwn", "text": "*Player List*"}})
     return formatted_msg
 
 
-def create_game_details_block_from_db(lobby_details: LobbyDetails) -> list[Any]:
-    """
-    Attempt to format general lobby details from database (CACHED data)
-
-    :return:
-    """
-    formatted_msg = [
-        {
-            "type": "header",
-            "text": {"type": "plain_text", "text": "Dominions Times"},
-        },
-        {"type": "divider"},
-        {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": " :freak_lord: *Update* :freak_lord:",
-            },
-        },
-        {
-            "type": "section",
-            "text": {"type": "mrkdwn", "text": f"{lobby_details.server_info}"},
-        },
-        {
-            "type": "section",
-            "text": {"type": "mrkdwn", "text": f"Turn: {lobby_details.turn}"},
-        },
-        {
-            "type": "section",
-            "text": {"type": "mrkdwn", "text": f"{lobby_details.time_left}"},
-        },
-        {"type": "divider"},
-        {"type": "section", "text": {"type": "mrkdwn", "text": "*Player List*"}},
-    ]
-    return formatted_msg
-
-
-def create_nations_block_from_db(player_list: list) -> list:
+def create_nations_block(player_list: list) -> list[dict[str, Any]]:
     player_blocks = []
 
     for player in player_list:
-        player.turn_emoji = get_emoji(turn_status=player.turn_status)
+        turn_emoji = get_emoji(turn_status=player.turn_status)
 
+        # web rows carry the full "Ermor, Ashen Empire" title, db rows the short name — show the short one either way
+        nation = player.name.split(",")[0].strip()
         player_name_string = f" - {player.nickname}" if player.nickname else ""
 
         nation_section = {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": f"{player.turn_emoji} - *{player.name}*{player_name_string}",
+                "text": f"{turn_emoji} - *{nation}*{player_name_string}",
             },
         }
 

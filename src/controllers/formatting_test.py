@@ -6,13 +6,13 @@ from tortoise import Tortoise
 
 from src.controllers.formatting import (
     create_game_details_block,
-    create_game_details_block_from_db,
-    create_nations_block_from_db,
+    create_nations_block,
     get_emoji,
 )
 from src.controllers.lobby_details import (
     fetch_lobby_details_from_db,
     fetch_lobby_details_from_web,
+    fetch_lobby_details_live,
     format_lobby_details,
     get_lobby_details,
 )
@@ -167,6 +167,41 @@ async def test_fetch_lobby_details_from_db() -> None:
     assert result.player_status[1].nickname is None
 
 
+@pytest.mark.usefixtures("_initialize_tortoise")
+async def test_fetch_lobby_details_live_keeps_nicknames() -> None:
+    """Refreshing a tracked game must not drop the player names only the db knows about."""
+    game = await Game.create(name="TestGame", turn=1, time_left="1 day left")
+    await Player.create(
+        nation="Ermor, Ashen Empire", short_name="Ermor", turn_status="-", player_name="Nick1", game=game
+    )
+
+    patcher = _patched_session(
+        "<html><body><tr>TestGame, Turn 2 (2 days left)</tr>"
+        "<tr><td>Ermor, Ashen Empire</td><td>Turn played</td></tr></body></html>"
+    )
+    try:
+        result = await fetch_lobby_details_live("TestGame")
+    finally:
+        patcher.stop()
+
+    assert result is not None
+    assert result.turn == "2", "live data, not the stale cached turn"
+    assert result.player_status[0].nickname == "Nick1"
+
+
+@pytest.mark.usefixtures("_initialize_tortoise")
+async def test_cached_turn_card_has_refresh_button() -> None:
+    game = await Game.create(name="TestGame", turn=3, time_left="3 days left")
+    await Player.create(nation="Nation1", short_name="Player1", turn_status="Turn played", game=game)
+
+    blocks = await get_lobby_details("TestGame", use_db=True)
+
+    actions = [block for block in blocks if block["type"] == "actions"]
+    assert len(actions) == 1
+    assert "refresh_game_status" in {element["action_id"] for element in actions[0]["elements"]}
+    assert any("Cached" in str(block) for block in blocks)
+
+
 def test_get_emoji() -> None:
     assert get_emoji("Turn played") == ":white_check_mark:"
     assert get_emoji("Turn unfinished") == ":question:"
@@ -183,10 +218,11 @@ def test_create_game_details_block() -> None:
         time_left="1 day left",
     )
     result = create_game_details_block(lobby_details)
-    assert len(result) == 6
     assert result[0]["type"] == "header"
     assert result[0]["text"]["text"] == "Dominions Times"
-    assert "Test Server, Turn 1 (1 day left)" in result[3]["text"]["text"]
+    assert "Test Server, Turn 1 (1 day left)" in result[1]["text"]["text"]
+    assert "Turn 1 · 1 day left" in result[1]["text"]["text"]
+    assert not [block for block in result if block["type"] == "actions"]
 
 
 def test_create_game_details_block_adds_buttons_when_named() -> None:
@@ -200,29 +236,32 @@ def test_create_game_details_block_adds_buttons_when_named() -> None:
     assert all(element["value"] == "MyGame" for element in actions[0]["elements"])
 
 
-def test_create_game_details_block_from_db() -> None:
-    lobby_details = LobbyDetails(
-        server_info="Test Server - Turn 2",
-        player_status=[],
-        turn="2",
-        time_left="2 days left",
-    )
-    result = create_game_details_block_from_db(lobby_details)
-    assert len(result) == 8
-    assert result[0]["type"] == "header"
-    assert result[0]["text"]["text"] == "Dominions Times"
-    assert "Test Server - Turn 2" in result[3]["text"]["text"]
-    assert "Turn: 2" in result[4]["text"]["text"]
-    assert "2 days left" in result[5]["text"]["text"]
+def test_create_game_details_block_is_identical_for_cached_and_live() -> None:
+    """The cached card must offer the same refresh/primary buttons as the live one."""
+    cached = LobbyDetails(server_info="MyGame - Turn 2", player_status=[], turn="2", time_left="2 days left")
+    live = LobbyDetails(server_info="mygame, turn 2 (2 days left)", player_status=[], turn="2", time_left="2 days left")
+
+    assert create_game_details_block(cached, "MyGame") == create_game_details_block(live, "MyGame")
 
 
-def test_create_nations_block_from_db() -> None:
+def test_create_game_details_block_omits_missing_time_left() -> None:
+    lobby_details = LobbyDetails(server_info="info", player_status=[], turn="9", time_left=None)
+    result = create_game_details_block(lobby_details, game_name="MyGame")
+
+    assert result[1]["text"]["text"].endswith("Turn 9")
+    assert "None" not in result[1]["text"]["text"]
+
+
+def test_create_nations_block() -> None:
     player_list = [
         PlayerStatus(name="Player1", turn_status="Turn played", nickname="Nick1"),
         PlayerStatus(name="Player2", turn_status="Turn unfinished", nickname=None),
+        PlayerStatus(name="Ermor, Ashen Empire", turn_status="Turn played", nickname=None),
     ]
-    result = create_nations_block_from_db(player_list)
-    assert len(result) == 2
+    result = create_nations_block(player_list)
+    assert len(result) == 3
     assert result[0]["type"] == "section"
     assert ":white_check_mark: - *Player1* - Nick1" in result[0]["text"]["text"]
     assert ":question: - *Player2*" in result[1]["text"]["text"]
+    # scraped nation titles get trimmed to the short name the db card already shows
+    assert ":white_check_mark: - *Ermor*" in result[2]["text"]["text"]
