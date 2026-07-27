@@ -98,6 +98,7 @@ async def fetch_lobby_details_from_db(game_name: str) -> LobbyDetails | None:
         player_status=player_status_list,
         turn=str(game.turn),
         time_left=game.time_left,
+        is_primary=game.primary_game,
     )
 
 
@@ -110,6 +111,8 @@ async def fetch_lobby_details_live(game_name: str) -> LobbyDetails | None:
     game = await Game.filter(name=game_name).order_by("-created_at").first()
     if game is None:
         return lobby_details
+
+    lobby_details.is_primary = game.primary_game
 
     nicknames = {player.nation: player.player_name for player in await Player.filter(game=game)}
     for player in lobby_details.player_status:

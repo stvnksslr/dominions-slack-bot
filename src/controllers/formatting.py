@@ -104,26 +104,27 @@ def create_game_details_block(lobby_details: LobbyDetails, game_name: str | None
     ]
 
     if game_name:
-        formatted_msg.append(
+        elements: list[dict[str, Any]] = [
             {
-                "type": "actions",
-                "elements": [
-                    {
-                        "type": "button",
-                        "text": {"type": "plain_text", "text": ":arrows_counterclockwise: Refresh", "emoji": True},
-                        "value": game_name,
-                        "action_id": "refresh_game_status",
-                        "style": "primary",
-                    },
-                    {
-                        "type": "button",
-                        "text": {"type": "plain_text", "text": ":star: Set Primary", "emoji": True},
-                        "value": game_name,
-                        "action_id": "set_primary_game",
-                    },
-                ],
-            }
-        )
+                "type": "button",
+                "text": {"type": "plain_text", "text": ":arrows_counterclockwise: Refresh", "emoji": True},
+                "value": game_name,
+                "action_id": "refresh_game_status",
+                "style": "primary",
+            },
+        ]
+        # no point offering to set primary on the game that already is one
+        if not lobby_details.is_primary:
+            elements.append(
+                {
+                    "type": "button",
+                    "text": {"type": "plain_text", "text": ":star: Set Primary", "emoji": True},
+                    "value": game_name,
+                    "action_id": "set_primary_game",
+                }
+            )
+
+        formatted_msg.append({"type": "actions", "elements": elements})
 
     formatted_msg.append({"type": "divider"})
     formatted_msg.append({"type": "section", "text": {"type": "mrkdwn", "text": "*Player List*"}})

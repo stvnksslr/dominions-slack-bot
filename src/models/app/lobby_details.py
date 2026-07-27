@@ -8,3 +8,4 @@ class LobbyDetails(BaseModel):
     player_status: list[PlayerStatus]
     turn: str
     time_left: str | None = None
+    is_primary: bool = False

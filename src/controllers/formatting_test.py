@@ -236,6 +236,17 @@ def test_create_game_details_block_adds_buttons_when_named() -> None:
     assert all(element["value"] == "MyGame" for element in actions[0]["elements"])
 
 
+def test_create_game_details_block_hides_set_primary_on_primary_game() -> None:
+    lobby_details = LobbyDetails(
+        server_info="info", player_status=[], turn="1", time_left="1 day left", is_primary=True
+    )
+    result = create_game_details_block(lobby_details, game_name="MyGame")
+
+    actions = [block for block in result if block["type"] == "actions"]
+    assert len(actions) == 1
+    assert {element["action_id"] for element in actions[0]["elements"]} == {"refresh_game_status"}
+
+
 def test_create_game_details_block_is_identical_for_cached_and_live() -> None:
     """The cached card must offer the same refresh/primary buttons as the live one."""
     cached = LobbyDetails(server_info="MyGame - Turn 2", player_status=[], turn="2", time_left="2 days left")
